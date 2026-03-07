@@ -35,6 +35,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # MCP Server SDK for AI-driven app automation
+  flutter_skill: ^0.9.6
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

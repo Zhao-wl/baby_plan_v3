@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_skill/flutter_skill.dart';
 
 void main() {
+  if (kDebugMode) FlutterSkillBinding.ensureInitialized();
   runApp(const MyApp());
 }
 

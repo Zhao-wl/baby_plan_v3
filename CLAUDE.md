@@ -74,3 +74,5 @@ test/
 ### Analysis
 
 Code uses `flutter_lints` preset (see `analysis_options.yaml`). Run `flutter analyze` to check for issues.
+
+总是用中文回答！
