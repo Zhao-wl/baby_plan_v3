@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Flutter** mobile application (baby_plan_v3) - a starter project generated with `flutter create`. The app is a basic counter demo showcasing Flutter's standard patterns.
+This is a **Flutter** mobile application (baby_plan_v3) - **E.A.S.Y. 育儿助手**，帮助父母记录和分析宝宝的日常活动。
 
 > **Note**: Windows desktop requires Visual Studio toolchain. Use `flutter run -d chrome` (Web) for development.
 
@@ -44,6 +44,9 @@ flutter pub get
 
 # Format code
 dart format .
+
+# Code generation (run after modifying models)
+dart run build_runner build --delete-conflicting-outputs
 ```
 
 ## Code Architecture
@@ -59,20 +62,41 @@ test/
 
 ### Key Patterns
 
-- **Root widget**: `MyApp` extends `StatelessWidget` - configures MaterialApp with theme
-- **Home page**: `MyHomePage` extends `StatefulWidget` - demonstrates basic counter state
-- **State management**: Uses Flutter's built-in `setState` for local state
+- **State management**: Riverpod (`flutter_riverpod`) for reactive state management
+- **Database**: Drift (SQLite ORM) for local data persistence
+- **Immutable models**: Freezed for immutable data classes with code generation
+- **JSON serialization**: json_serializable for JSON encoding/decoding
 - **Testing**: Uses `flutter_test` package with `WidgetTester` for widget tests
 
 ### Dependencies
 
+#### Core Dependencies
 - `flutter` (SDK) - core framework
 - `cupertino_icons` - iOS-style icons
+- `flutter_riverpod` - state management
+- `drift` + `drift_flutter` - SQLite ORM database
+- `fl_chart` - charts and graphs
+- `freezed_annotation` - immutable data class annotations
+- `json_annotation` - JSON serialization annotations
+- `flutter_skill` - MCP Server SDK for AI-driven automation
+
+#### Development Dependencies
 - `flutter_test` - testing framework
-- `flutter_lints` - code analysis (uses flutter.yaml preset)
+- `flutter_lints` - code analysis (see `analysis_options.yaml`)
+- `build_runner` - code generation runner
+- `drift_dev` - Drift code generator
+- `freezed` - Freezed code generator
+- `json_serializable` - JSON serialization generator
 
 ### Analysis
 
-Code uses `flutter_lints` preset (see `analysis_options.yaml`). Run `flutter analyze` to check for issues.
+Code uses `flutter_lints` preset with additional rules (see `analysis_options.yaml`):
+- `avoid_print: warning`
+- `prefer_const_constructors: warning`
+- `prefer_const_declarations: warning`
+- `avoid_relative_lib_imports: error`
+- `always_declare_return_types: warning`
+
+Run `flutter analyze` to check for issues.
 
 总是用中文回答！

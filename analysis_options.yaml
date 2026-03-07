@@ -21,8 +21,16 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # Code Quality
+    avoid_print: warning
+    always_declare_return_types: warning
+
+    # Performance & Best Practices
+    prefer_const_constructors: warning
+    prefer_const_declarations: warning
+
+    # Code Organization
+    avoid_relative_lib_imports: error
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

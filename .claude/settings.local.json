@@ -20,7 +20,14 @@
       "Bash(git log:*)",
       "Bash(git diff:*)",
       "Bash(git tag:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(flutter:*)",
+      "mcp__dart__pub_dev_search",
+      "WebFetch(domain:drift.simonbinder.eu)",
+      "WebFetch(domain:pub.dev)",
+      "mcp__dart__read_package_uris",
+      "mcp__dart__pub",
+      "Bash(dart run:*)"
     ]
   }
 }
