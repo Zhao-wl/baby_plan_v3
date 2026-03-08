@@ -70,6 +70,16 @@ lib/
       vaccine_library.dart # 疫苗库表（内置）
       vaccine_records.dart # 接种记录表
       age_benchmark_data.dart # 月龄基准数据表
+  providers/
+    providers.dart              # Barrel export
+    database_provider.dart      # 数据库单例
+    settings_provider.dart      # SharedPreferences 设置
+    babies_provider.dart        # 宝宝列表
+    current_baby_provider.dart  # 当前宝宝状态
+    family_provider.dart        # 家庭组状态
+    timeline_provider.dart      # 时间线数据
+    stats_provider.dart         # 统计数据
+    sync_provider.dart          # 同步状态
   services/
     device_service.dart  # 设备标识服务
 assets/
@@ -158,6 +168,89 @@ dart run build_runner build --delete-conflicting-outputs
 - **JSON serialization**: json_serializable for JSON encoding/decoding
 - **Device ID**: UUID v4 stored in SharedPreferences
 - **Testing**: Uses `flutter_test` package with `WidgetTester` for widget tests
+
+### Provider Architecture
+
+应用使用 Riverpod 进行状态管理，Provider 层直接调用 Database，不引入额外的 Repository 层。
+
+#### Provider 依赖关系
+
+```
+databaseProvider (AppDatabase 单例)
+    │
+    ├── settingsProvider (SharedPreferences 设置)
+    │       │
+    │       └── currentBabyProvider (当前宝宝状态)
+    │               │
+    │               ├── timelineProvider (时间线数据)
+    │               └── statsProvider (统计数据)
+    │
+    ├── babiesProvider (宝宝列表)
+    ├── familyProvider (家庭组信息)
+    └── syncProvider (同步状态)
+```
+
+#### 核心 Provider
+
+| Provider | 类型 | 说明 |
+|----------|------|------|
+| `databaseProvider` | `Provider<AppDatabase>` | 数据库单例，自动管理生命周期 |
+| `settingsProvider` | `NotifierProvider<SettingsNotifier, AsyncValue<Settings>>` | 应用设置（当前宝宝ID、上次同步时间） |
+| `babiesProvider` | `StreamProvider<List<Baby>>` | 宝宝列表（实时更新） |
+| `currentBabyProvider` | `NotifierProvider<CurrentBabyNotifier, CurrentBabyState>` | 当前选中的宝宝 |
+| `familyProvider` | `StreamProvider<Family?>` | 当前家庭组信息 |
+| `timelineProvider` | `FutureProvider.family<List<ActivityRecord>, TimelineQuery>` | 时间线数据（按日期查询） |
+| `statsProvider` | `FutureProvider.family<StatsData, StatsQuery>` | 统计数据（日/周/月） |
+| `syncProvider` | `NotifierProvider<SyncNotifier, SyncState>` | 同步状态管理 |
+
+#### Provider 使用示例
+
+```dart
+// 在 Widget 中使用 Provider
+class BabyListWidget extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final babiesAsync = ref.watch(babiesProvider);
+
+    return babiesAsync.when(
+      data: (babies) => ListView.builder(
+        itemCount: babies.length,
+        itemBuilder: (context, index) => ListTile(title: Text(babies[index].name)),
+      ),
+      loading: () => CircularProgressIndicator(),
+      error: (err, stack) => Text('Error: $err'),
+    );
+  }
+}
+
+// 选择当前宝宝
+await ref.read(currentBabyProvider.notifier).selectBaby(baby);
+
+// 查询今日时间线
+final timeline = await ref.read(timelineProvider(TimelineQuery(
+  babyId: 1,
+  date: DateTime.now(),
+)).future);
+
+// 获取今日统计
+final stats = await ref.read(todayStatsProvider(1).future);
+```
+
+#### 文件结构
+
+```
+lib/
+  providers/
+    providers.dart              # Barrel export
+    database_provider.dart      # 数据库单例
+    settings_provider.dart      # SharedPreferences 设置
+    babies_provider.dart        # 宝宝列表
+    current_baby_provider.dart  # 当前宝宝状态
+    family_provider.dart        # 家庭组状态
+    timeline_provider.dart      # 时间线数据
+    stats_provider.dart         # 统计数据
+    sync_provider.dart          # 同步状态
+```
 
 ### Dependencies
 

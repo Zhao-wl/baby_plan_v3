@@ -40,7 +40,8 @@
       "mcp__chrome-devtools__take_snapshot",
       "mcp__chrome-devtools__wait_for",
       "mcp__dart__analyze_files",
-      "mcp__dart__run_tests"
+      "mcp__dart__run_tests",
+      "Bash(npx openspec:*)"
     ]
   }
 }

@@ -1,33 +1,39 @@
 ## 1. 阶段一：基础架构搭建（第1-2周）
 
-### 1.1 项目初始化与依赖配置
+### 1.1 项目初始化与依赖配置 ✅ 已完成
 - [x] 1.1.1 初始化 Flutter 项目，配置最低 SDK 版本
 - [x] 1.1.2 添加 Riverpod、Drift、fl_chart 等核心依赖
 - [x] 1.1.3 配置 build_runner 和代码生成
 - [x] 1.1.4 配置分析选项（analysis_options.yaml）
 
-### 1.2 Drift 数据库集成与验证
+> **归档**: 2026-03-07-project-init-dependencies
+
+### 1.2 Drift 数据库集成与验证 🔶 部分完成
 - [x] 1.2.1 添加 Drift 依赖（drift、drift_flutter、drift_dev）
 - [x] 1.2.2 创建 Drift 数据库初始化代码
 - [ ] 1.2.3 验证 Drift 在 Android 上的性能（插入 1000 条记录）
 - [ ] 1.2.4 验证 Drift 在 iOS 上的性能
 - [x] 1.2.5 验证 Drift 在 Web 上的兼容性
 
-### 1.3 数据模型设计
-- [ ] 1.3.1 设计 Baby 实体（基本信息、出生日期等）
-- [ ] 1.3.2 设计 ActivityRecord 实体（E/A/S 活动记录）
-- [ ] 1.3.3 设计 GrowthRecord 实体（身高、体重、头围）
-- [ ] 1.3.4 设计 VaccineRecord 实体（疫苗接种记录）
-- [ ] 1.3.5 设计 User 和 FamilyGroup 实体
-- [ ] 1.3.6 生成 Drift 代码（运行 build_runner）
+### 1.3 数据模型设计 ✅ 已完成
+- [x] 1.3.1 设计 Baby 实体（基本信息、出生日期等）
+- [x] 1.3.2 设计 ActivityRecord 实体（E/A/S 活动记录）
+- [x] 1.3.3 设计 GrowthRecord 实体（身高、体重、头围）
+- [x] 1.3.4 设计 VaccineRecord 实体（疫苗接种记录）
+- [x] 1.3.5 设计 User 和 FamilyGroup 实体
+- [x] 1.3.6 生成 Drift 代码（运行 build_runner）
 
-### 1.4 Riverpod 架构搭建
-- [ ] 1.4.1 配置 Riverpod 代码生成
-- [ ] 1.4.2 创建基础 Provider 结构
-- [ ] 1.4.3 实现 baby_provider（当前宝宝状态管理）
-- [ ] 1.4.4 实现 timeline_provider（时间线数据）
-- [ ] 1.4.5 实现 stats_provider（统计数据）
-- [ ] 1.4.6 实现 sync_provider（同步状态）
+> **归档**: 2026-03-08-data-model-design, 2026-03-08-database-test-coverage
+
+### 1.4 Riverpod 架构搭建 ✅ 已完成
+- [x] 1.4.1 配置 Riverpod 代码生成（因 drift_dev 冲突改用手写 Provider）
+- [x] 1.4.2 创建基础 Provider 结构
+- [x] 1.4.3 实现 baby_provider（当前宝宝状态管理）
+- [x] 1.4.4 实现 timeline_provider（时间线数据）
+- [x] 1.4.5 实现 stats_provider（统计数据）
+- [x] 1.4.6 实现 sync_provider（同步状态）
+
+> **归档**: 2026-03-08-riverpod-architecture
 
 ### 1.5 主题系统与颜色配置
 - [ ] 1.5.1 定义 AppTheme 颜色常量（主色、E/A/S 颜色）
