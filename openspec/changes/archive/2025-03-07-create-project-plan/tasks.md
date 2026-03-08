@@ -1,17 +1,17 @@
 ## 1. 阶段一：基础架构搭建（第1-2周）
 
 ### 1.1 项目初始化与依赖配置
-- [ ] 1.1.1 初始化 Flutter 项目，配置最低 SDK 版本
-- [ ] 1.1.2 添加 Riverpod、Isar、fl_chart 等核心依赖
-- [ ] 1.1.3 配置 build_runner 和代码生成
-- [ ] 1.1.4 配置分析选项（analysis_options.yaml）
+- [x] 1.1.1 初始化 Flutter 项目，配置最低 SDK 版本
+- [x] 1.1.2 添加 Riverpod、Drift、fl_chart 等核心依赖
+- [x] 1.1.3 配置 build_runner 和代码生成
+- [x] 1.1.4 配置分析选项（analysis_options.yaml）
 
-### 1.2 Isar 数据库集成与验证
-- [ ] 1.2.1 添加 Isar 依赖（isar、isar_flutter_libs、isar_generator）
-- [ ] 1.2.2 创建 Isar 数据库初始化代码
-- [ ] 1.2.3 验证 Isar 在 Android 上的性能（插入 1000 条记录）
-- [ ] 1.2.4 验证 Isar 在 iOS 上的性能
-- [ ] 1.2.5 验证 Isar 在 Web 上的兼容性
+### 1.2 Drift 数据库集成与验证
+- [x] 1.2.1 添加 Drift 依赖（drift、drift_flutter、drift_dev）
+- [x] 1.2.2 创建 Drift 数据库初始化代码
+- [ ] 1.2.3 验证 Drift 在 Android 上的性能（插入 1000 条记录）
+- [ ] 1.2.4 验证 Drift 在 iOS 上的性能
+- [x] 1.2.5 验证 Drift 在 Web 上的兼容性
 
 ### 1.3 数据模型设计
 - [ ] 1.3.1 设计 Baby 实体（基本信息、出生日期等）
@@ -19,7 +19,7 @@
 - [ ] 1.3.3 设计 GrowthRecord 实体（身高、体重、头围）
 - [ ] 1.3.4 设计 VaccineRecord 实体（疫苗接种记录）
 - [ ] 1.3.5 设计 User 和 FamilyGroup 实体
-- [ ] 1.3.6 生成 Isar 代码（运行 build_runner）
+- [ ] 1.3.6 生成 Drift 代码（运行 build_runner）
 
 ### 1.4 Riverpod 架构搭建
 - [ ] 1.4.1 配置 Riverpod 代码生成
@@ -98,7 +98,7 @@
 - [ ] 2.4.5 实现跨天处理逻辑
 
 ### 2.5 记录 CRUD 操作
-- [ ] 2.5.1 实现记录创建（插入 Isar）
+- [ ] 2.5.1 实现记录创建（插入 Drift）
 - [ ] 2.5.2 实现记录读取（按日期查询）
 - [ ] 2.5.3 实现记录更新（编辑已有记录）
 - [ ] 2.5.4 实现记录删除（带确认对话框）

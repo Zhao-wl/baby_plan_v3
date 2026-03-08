@@ -27,7 +27,18 @@
       "WebFetch(domain:pub.dev)",
       "mcp__dart__read_package_uris",
       "mcp__dart__pub",
-      "Bash(dart run:*)"
+      "Bash(dart run:*)",
+      "mcp__dart__list_devices",
+      "mcp__dart__launch_app",
+      "mcp__dart__connect_dart_tooling_daemon",
+      "mcp__dart__get_runtime_errors",
+      "mcp__dart__get_app_logs",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__dart__get_widget_tree",
+      "mcp__dart__flutter_driver",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__wait_for"
     ]
   }
 }

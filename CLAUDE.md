@@ -56,8 +56,33 @@ dart run build_runner build --delete-conflicting-outputs
 ```
 lib/
   main.dart              # App entry point and root widget
+  database/
+    connection.dart      # Database connection setup
+    database.dart        # AppDatabase class with migrations
+    tables/              # Table definitions
+      test_table.dart    # Test table for verification
 test/
   widget_test.dart       # Basic widget test
+```
+
+### Database Usage
+
+The app uses **Drift** (SQLite ORM) for local data persistence. Key concepts:
+
+```dart
+// Initialize database
+final db = AppDatabase();
+
+// The database automatically creates tables on first run
+// Schema version is managed in database.dart
+
+// Don't forget to close when done
+db.close();
+```
+
+**Code Generation**: After modifying database tables, run:
+```bash
+dart run build_runner build --delete-conflicting-outputs
 ```
 
 ### Key Patterns
