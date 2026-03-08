@@ -38,7 +38,9 @@
       "mcp__dart__flutter_driver",
       "mcp__chrome-devtools__navigate_page",
       "mcp__chrome-devtools__take_snapshot",
-      "mcp__chrome-devtools__wait_for"
+      "mcp__chrome-devtools__wait_for",
+      "mcp__dart__analyze_files",
+      "mcp__dart__run_tests"
     ]
   }
 }

@@ -27,6 +27,7 @@ flutter test
 
 # Run a specific test file
 flutter test test/widget_test.dart
+flutter test test/database/database_test.dart
 
 # Analyze code for errors
 flutter analyze
@@ -60,14 +61,78 @@ lib/
     connection.dart      # Database connection setup
     database.dart        # AppDatabase class with migrations
     tables/              # Table definitions
-      test_table.dart    # Test table for verification
+      users.dart         # 用户表
+      families.dart      # 家庭组表
+      family_members.dart # 家庭成员关联表
+      babies.dart        # 宝宝表
+      activity_records.dart # 活动记录表（核心）
+      growth_records.dart # 生长记录表
+      vaccine_library.dart # 疫苗库表（内置）
+      vaccine_records.dart # 接种记录表
+      age_benchmark_data.dart # 月龄基准数据表
+  services/
+    device_service.dart  # 设备标识服务
+assets/
+  data/
+    vaccine_library.json # 内置疫苗数据
 test/
   widget_test.dart       # Basic widget test
+  database/
+    database_test.dart   # Database tests
 ```
 
-### Database Usage
+### Database Schema
 
-The app uses **Drift** (SQLite ORM) for local data persistence. Key concepts:
+The app uses **Drift** (SQLite ORM) for local data persistence. Current schema version: **2**
+
+#### 表结构概览
+
+| 表名 | 说明 | 软删除 | 同步支持 |
+|------|------|--------|----------|
+| Users | 用户账号信息 | ✓ | ✓ |
+| Families | 家庭组信息 | ✓ | ✓ |
+| FamilyMembers | 家庭成员关联 | ✓ | ✓ |
+| Babies | 宝宝基本信息 | ✓ | ✓ |
+| ActivityRecords | E.A.S.Y活动记录 | ✓ | ✓ |
+| GrowthRecords | 生长记录 | ✓ | ✓ |
+| VaccineLibrary | 疫苗库（内置只读）| ✗ | ✗ |
+| VaccineRecords | 接种记录 | ✓ | ✓ |
+| AgeBenchmarkData | 月龄基准数据 | ✗ | ✗ |
+
+#### 活动记录表 (ActivityRecords)
+
+核心表，采用混合设计（公共字段 + 专属字段）：
+
+**公共字段：**
+- `id`, `babyId`, `type`, `startTime`, `endTime`, `durationSeconds`, `notes`, `isVerified`
+
+**活动类型 (type)：**
+- 0 = Eat (吃/喂养)
+- 1 = Activity (玩/活动)
+- 2 = Sleep (睡眠)
+- 3 = Poop (排泄)
+
+**专属字段：**
+- 喂养：`eatingMethod`, `breastSide`, `breastDurationMinutes`, `formulaAmountMl`, `foodType`
+- 睡眠：`sleepQuality`, `sleepLocation`, `sleepAssistMethod`
+- 活动：`activityType`, `mood`
+- 排泄：`diaperType`, `stoolColor`, `stoolTexture`
+
+#### 同步字段
+
+需要同步的用户数据表包含以下字段：
+- `serverId` - 服务器ID
+- `deviceId` - 创建设备标识
+- `syncStatus` - 同步状态 (0=已同步, 1=待上传, 2=待下载, 3=冲突)
+- `version` - 数据版本号
+
+#### 软删除字段
+
+支持软删除的表包含以下字段：
+- `isDeleted` - 是否已删除
+- `deletedAt` - 删除时间
+
+### Database Usage
 
 ```dart
 // Initialize database
@@ -91,6 +156,7 @@ dart run build_runner build --delete-conflicting-outputs
 - **Database**: Drift (SQLite ORM) for local data persistence
 - **Immutable models**: Freezed for immutable data classes with code generation
 - **JSON serialization**: json_serializable for JSON encoding/decoding
+- **Device ID**: UUID v4 stored in SharedPreferences
 - **Testing**: Uses `flutter_test` package with `WidgetTester` for widget tests
 
 ### Dependencies
@@ -104,6 +170,8 @@ dart run build_runner build --delete-conflicting-outputs
 - `freezed_annotation` - immutable data class annotations
 - `json_annotation` - JSON serialization annotations
 - `flutter_skill` - MCP Server SDK for AI-driven automation
+- `uuid` - UUID generation for device identifiers
+- `shared_preferences` - persistent key-value storage
 
 #### Development Dependencies
 - `flutter_test` - testing framework

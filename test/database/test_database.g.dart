@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'database.dart';
+part of 'test_database.dart';
 
 // ignore_for_file: type=lint
 class $TestRecordsTable extends TestRecords
@@ -8603,9 +8603,9 @@ class AgeBenchmarkDataCompanion extends UpdateCompanion<AgeBenchmarkDataData> {
   }
 }
 
-abstract class _$AppDatabase extends GeneratedDatabase {
-  _$AppDatabase(QueryExecutor e) : super(e);
-  $AppDatabaseManager get managers => $AppDatabaseManager(this);
+abstract class _$TestDatabase extends GeneratedDatabase {
+  _$TestDatabase(QueryExecutor e) : super(e);
+  $TestDatabaseManager get managers => $TestDatabaseManager(this);
   late final $TestRecordsTable testRecords = $TestRecordsTable(this);
   late final $UsersTable users = $UsersTable(this);
   late final $FamiliesTable families = $FamiliesTable(this);
@@ -8652,7 +8652,7 @@ typedef $$TestRecordsTableUpdateCompanionBuilder =
     });
 
 class $$TestRecordsTableFilterComposer
-    extends Composer<_$AppDatabase, $TestRecordsTable> {
+    extends Composer<_$TestDatabase, $TestRecordsTable> {
   $$TestRecordsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -8677,7 +8677,7 @@ class $$TestRecordsTableFilterComposer
 }
 
 class $$TestRecordsTableOrderingComposer
-    extends Composer<_$AppDatabase, $TestRecordsTable> {
+    extends Composer<_$TestDatabase, $TestRecordsTable> {
   $$TestRecordsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -8702,7 +8702,7 @@ class $$TestRecordsTableOrderingComposer
 }
 
 class $$TestRecordsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $TestRecordsTable> {
+    extends Composer<_$TestDatabase, $TestRecordsTable> {
   $$TestRecordsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -8723,7 +8723,7 @@ class $$TestRecordsTableAnnotationComposer
 class $$TestRecordsTableTableManager
     extends
         RootTableManager<
-          _$AppDatabase,
+          _$TestDatabase,
           $TestRecordsTable,
           TestRecord,
           $$TestRecordsTableFilterComposer,
@@ -8733,12 +8733,12 @@ class $$TestRecordsTableTableManager
           $$TestRecordsTableUpdateCompanionBuilder,
           (
             TestRecord,
-            BaseReferences<_$AppDatabase, $TestRecordsTable, TestRecord>,
+            BaseReferences<_$TestDatabase, $TestRecordsTable, TestRecord>,
           ),
           TestRecord,
           PrefetchHooks Function()
         > {
-  $$TestRecordsTableTableManager(_$AppDatabase db, $TestRecordsTable table)
+  $$TestRecordsTableTableManager(_$TestDatabase db, $TestRecordsTable table)
     : super(
         TableManagerState(
           db: db,
@@ -8779,7 +8779,7 @@ class $$TestRecordsTableTableManager
 
 typedef $$TestRecordsTableProcessedTableManager =
     ProcessedTableManager<
-      _$AppDatabase,
+      _$TestDatabase,
       $TestRecordsTable,
       TestRecord,
       $$TestRecordsTableFilterComposer,
@@ -8789,7 +8789,7 @@ typedef $$TestRecordsTableProcessedTableManager =
       $$TestRecordsTableUpdateCompanionBuilder,
       (
         TestRecord,
-        BaseReferences<_$AppDatabase, $TestRecordsTable, TestRecord>,
+        BaseReferences<_$TestDatabase, $TestRecordsTable, TestRecord>,
       ),
       TestRecord,
       PrefetchHooks Function()
@@ -8823,7 +8823,7 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<DateTime> updatedAt,
     });
 
-class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
+class $$UsersTableFilterComposer extends Composer<_$TestDatabase, $UsersTable> {
   $$UsersTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -8888,7 +8888,7 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 }
 
 class $$UsersTableOrderingComposer
-    extends Composer<_$AppDatabase, $UsersTable> {
+    extends Composer<_$TestDatabase, $UsersTable> {
   $$UsersTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -8953,7 +8953,7 @@ class $$UsersTableOrderingComposer
 }
 
 class $$UsersTableAnnotationComposer
-    extends Composer<_$AppDatabase, $UsersTable> {
+    extends Composer<_$TestDatabase, $UsersTable> {
   $$UsersTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -9000,7 +9000,7 @@ class $$UsersTableAnnotationComposer
 class $$UsersTableTableManager
     extends
         RootTableManager<
-          _$AppDatabase,
+          _$TestDatabase,
           $UsersTable,
           User,
           $$UsersTableFilterComposer,
@@ -9008,11 +9008,11 @@ class $$UsersTableTableManager
           $$UsersTableAnnotationComposer,
           $$UsersTableCreateCompanionBuilder,
           $$UsersTableUpdateCompanionBuilder,
-          (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
+          (User, BaseReferences<_$TestDatabase, $UsersTable, User>),
           User,
           PrefetchHooks Function()
         > {
-  $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
+  $$UsersTableTableManager(_$TestDatabase db, $UsersTable table)
     : super(
         TableManagerState(
           db: db,
@@ -9085,7 +9085,7 @@ class $$UsersTableTableManager
 
 typedef $$UsersTableProcessedTableManager =
     ProcessedTableManager<
-      _$AppDatabase,
+      _$TestDatabase,
       $UsersTable,
       User,
       $$UsersTableFilterComposer,
@@ -9093,7 +9093,7 @@ typedef $$UsersTableProcessedTableManager =
       $$UsersTableAnnotationComposer,
       $$UsersTableCreateCompanionBuilder,
       $$UsersTableUpdateCompanionBuilder,
-      (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
+      (User, BaseReferences<_$TestDatabase, $UsersTable, User>),
       User,
       PrefetchHooks Function()
     >;
@@ -9123,7 +9123,7 @@ typedef $$FamiliesTableUpdateCompanionBuilder =
     });
 
 class $$FamiliesTableFilterComposer
-    extends Composer<_$AppDatabase, $FamiliesTable> {
+    extends Composer<_$TestDatabase, $FamiliesTable> {
   $$FamiliesTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -9178,7 +9178,7 @@ class $$FamiliesTableFilterComposer
 }
 
 class $$FamiliesTableOrderingComposer
-    extends Composer<_$AppDatabase, $FamiliesTable> {
+    extends Composer<_$TestDatabase, $FamiliesTable> {
   $$FamiliesTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -9233,7 +9233,7 @@ class $$FamiliesTableOrderingComposer
 }
 
 class $$FamiliesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $FamiliesTable> {
+    extends Composer<_$TestDatabase, $FamiliesTable> {
   $$FamiliesTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -9276,7 +9276,7 @@ class $$FamiliesTableAnnotationComposer
 class $$FamiliesTableTableManager
     extends
         RootTableManager<
-          _$AppDatabase,
+          _$TestDatabase,
           $FamiliesTable,
           Family,
           $$FamiliesTableFilterComposer,
@@ -9284,11 +9284,11 @@ class $$FamiliesTableTableManager
           $$FamiliesTableAnnotationComposer,
           $$FamiliesTableCreateCompanionBuilder,
           $$FamiliesTableUpdateCompanionBuilder,
-          (Family, BaseReferences<_$AppDatabase, $FamiliesTable, Family>),
+          (Family, BaseReferences<_$TestDatabase, $FamiliesTable, Family>),
           Family,
           PrefetchHooks Function()
         > {
-  $$FamiliesTableTableManager(_$AppDatabase db, $FamiliesTable table)
+  $$FamiliesTableTableManager(_$TestDatabase db, $FamiliesTable table)
     : super(
         TableManagerState(
           db: db,
@@ -9353,7 +9353,7 @@ class $$FamiliesTableTableManager
 
 typedef $$FamiliesTableProcessedTableManager =
     ProcessedTableManager<
-      _$AppDatabase,
+      _$TestDatabase,
       $FamiliesTable,
       Family,
       $$FamiliesTableFilterComposer,
@@ -9361,7 +9361,7 @@ typedef $$FamiliesTableProcessedTableManager =
       $$FamiliesTableAnnotationComposer,
       $$FamiliesTableCreateCompanionBuilder,
       $$FamiliesTableUpdateCompanionBuilder,
-      (Family, BaseReferences<_$AppDatabase, $FamiliesTable, Family>),
+      (Family, BaseReferences<_$TestDatabase, $FamiliesTable, Family>),
       Family,
       PrefetchHooks Function()
     >;
@@ -9389,7 +9389,7 @@ typedef $$FamilyMembersTableUpdateCompanionBuilder =
     });
 
 class $$FamilyMembersTableFilterComposer
-    extends Composer<_$AppDatabase, $FamilyMembersTable> {
+    extends Composer<_$TestDatabase, $FamilyMembersTable> {
   $$FamilyMembersTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -9439,7 +9439,7 @@ class $$FamilyMembersTableFilterComposer
 }
 
 class $$FamilyMembersTableOrderingComposer
-    extends Composer<_$AppDatabase, $FamilyMembersTable> {
+    extends Composer<_$TestDatabase, $FamilyMembersTable> {
   $$FamilyMembersTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -9489,7 +9489,7 @@ class $$FamilyMembersTableOrderingComposer
 }
 
 class $$FamilyMembersTableAnnotationComposer
-    extends Composer<_$AppDatabase, $FamilyMembersTable> {
+    extends Composer<_$TestDatabase, $FamilyMembersTable> {
   $$FamilyMembersTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -9525,7 +9525,7 @@ class $$FamilyMembersTableAnnotationComposer
 class $$FamilyMembersTableTableManager
     extends
         RootTableManager<
-          _$AppDatabase,
+          _$TestDatabase,
           $FamilyMembersTable,
           FamilyMember,
           $$FamilyMembersTableFilterComposer,
@@ -9535,12 +9535,12 @@ class $$FamilyMembersTableTableManager
           $$FamilyMembersTableUpdateCompanionBuilder,
           (
             FamilyMember,
-            BaseReferences<_$AppDatabase, $FamilyMembersTable, FamilyMember>,
+            BaseReferences<_$TestDatabase, $FamilyMembersTable, FamilyMember>,
           ),
           FamilyMember,
           PrefetchHooks Function()
         > {
-  $$FamilyMembersTableTableManager(_$AppDatabase db, $FamilyMembersTable table)
+  $$FamilyMembersTableTableManager(_$TestDatabase db, $FamilyMembersTable table)
     : super(
         TableManagerState(
           db: db,
@@ -9601,7 +9601,7 @@ class $$FamilyMembersTableTableManager
 
 typedef $$FamilyMembersTableProcessedTableManager =
     ProcessedTableManager<
-      _$AppDatabase,
+      _$TestDatabase,
       $FamilyMembersTable,
       FamilyMember,
       $$FamilyMembersTableFilterComposer,
@@ -9611,7 +9611,7 @@ typedef $$FamilyMembersTableProcessedTableManager =
       $$FamilyMembersTableUpdateCompanionBuilder,
       (
         FamilyMember,
-        BaseReferences<_$AppDatabase, $FamilyMembersTable, FamilyMember>,
+        BaseReferences<_$TestDatabase, $FamilyMembersTable, FamilyMember>,
       ),
       FamilyMember,
       PrefetchHooks Function()
@@ -9658,7 +9658,7 @@ typedef $$BabiesTableUpdateCompanionBuilder =
     });
 
 class $$BabiesTableFilterComposer
-    extends Composer<_$AppDatabase, $BabiesTable> {
+    extends Composer<_$TestDatabase, $BabiesTable> {
   $$BabiesTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -9753,7 +9753,7 @@ class $$BabiesTableFilterComposer
 }
 
 class $$BabiesTableOrderingComposer
-    extends Composer<_$AppDatabase, $BabiesTable> {
+    extends Composer<_$TestDatabase, $BabiesTable> {
   $$BabiesTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -9848,7 +9848,7 @@ class $$BabiesTableOrderingComposer
 }
 
 class $$BabiesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $BabiesTable> {
+    extends Composer<_$TestDatabase, $BabiesTable> {
   $$BabiesTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -9919,7 +9919,7 @@ class $$BabiesTableAnnotationComposer
 class $$BabiesTableTableManager
     extends
         RootTableManager<
-          _$AppDatabase,
+          _$TestDatabase,
           $BabiesTable,
           Baby,
           $$BabiesTableFilterComposer,
@@ -9927,11 +9927,11 @@ class $$BabiesTableTableManager
           $$BabiesTableAnnotationComposer,
           $$BabiesTableCreateCompanionBuilder,
           $$BabiesTableUpdateCompanionBuilder,
-          (Baby, BaseReferences<_$AppDatabase, $BabiesTable, Baby>),
+          (Baby, BaseReferences<_$TestDatabase, $BabiesTable, Baby>),
           Baby,
           PrefetchHooks Function()
         > {
-  $$BabiesTableTableManager(_$AppDatabase db, $BabiesTable table)
+  $$BabiesTableTableManager(_$TestDatabase db, $BabiesTable table)
     : super(
         TableManagerState(
           db: db,
@@ -10028,7 +10028,7 @@ class $$BabiesTableTableManager
 
 typedef $$BabiesTableProcessedTableManager =
     ProcessedTableManager<
-      _$AppDatabase,
+      _$TestDatabase,
       $BabiesTable,
       Baby,
       $$BabiesTableFilterComposer,
@@ -10036,7 +10036,7 @@ typedef $$BabiesTableProcessedTableManager =
       $$BabiesTableAnnotationComposer,
       $$BabiesTableCreateCompanionBuilder,
       $$BabiesTableUpdateCompanionBuilder,
-      (Baby, BaseReferences<_$AppDatabase, $BabiesTable, Baby>),
+      (Baby, BaseReferences<_$TestDatabase, $BabiesTable, Baby>),
       Baby,
       PrefetchHooks Function()
     >;
@@ -10106,7 +10106,7 @@ typedef $$ActivityRecordsTableUpdateCompanionBuilder =
     });
 
 class $$ActivityRecordsTableFilterComposer
-    extends Composer<_$AppDatabase, $ActivityRecordsTable> {
+    extends Composer<_$TestDatabase, $ActivityRecordsTable> {
   $$ActivityRecordsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -10261,7 +10261,7 @@ class $$ActivityRecordsTableFilterComposer
 }
 
 class $$ActivityRecordsTableOrderingComposer
-    extends Composer<_$AppDatabase, $ActivityRecordsTable> {
+    extends Composer<_$TestDatabase, $ActivityRecordsTable> {
   $$ActivityRecordsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -10416,7 +10416,7 @@ class $$ActivityRecordsTableOrderingComposer
 }
 
 class $$ActivityRecordsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $ActivityRecordsTable> {
+    extends Composer<_$TestDatabase, $ActivityRecordsTable> {
   $$ActivityRecordsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -10543,7 +10543,7 @@ class $$ActivityRecordsTableAnnotationComposer
 class $$ActivityRecordsTableTableManager
     extends
         RootTableManager<
-          _$AppDatabase,
+          _$TestDatabase,
           $ActivityRecordsTable,
           ActivityRecord,
           $$ActivityRecordsTableFilterComposer,
@@ -10554,7 +10554,7 @@ class $$ActivityRecordsTableTableManager
           (
             ActivityRecord,
             BaseReferences<
-              _$AppDatabase,
+              _$TestDatabase,
               $ActivityRecordsTable,
               ActivityRecord
             >,
@@ -10563,7 +10563,7 @@ class $$ActivityRecordsTableTableManager
           PrefetchHooks Function()
         > {
   $$ActivityRecordsTableTableManager(
-    _$AppDatabase db,
+    _$TestDatabase db,
     $ActivityRecordsTable table,
   ) : super(
         TableManagerState(
@@ -10709,7 +10709,7 @@ class $$ActivityRecordsTableTableManager
 
 typedef $$ActivityRecordsTableProcessedTableManager =
     ProcessedTableManager<
-      _$AppDatabase,
+      _$TestDatabase,
       $ActivityRecordsTable,
       ActivityRecord,
       $$ActivityRecordsTableFilterComposer,
@@ -10719,7 +10719,7 @@ typedef $$ActivityRecordsTableProcessedTableManager =
       $$ActivityRecordsTableUpdateCompanionBuilder,
       (
         ActivityRecord,
-        BaseReferences<_$AppDatabase, $ActivityRecordsTable, ActivityRecord>,
+        BaseReferences<_$TestDatabase, $ActivityRecordsTable, ActivityRecord>,
       ),
       ActivityRecord,
       PrefetchHooks Function()
@@ -10766,7 +10766,7 @@ typedef $$GrowthRecordsTableUpdateCompanionBuilder =
     });
 
 class $$GrowthRecordsTableFilterComposer
-    extends Composer<_$AppDatabase, $GrowthRecordsTable> {
+    extends Composer<_$TestDatabase, $GrowthRecordsTable> {
   $$GrowthRecordsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -10861,7 +10861,7 @@ class $$GrowthRecordsTableFilterComposer
 }
 
 class $$GrowthRecordsTableOrderingComposer
-    extends Composer<_$AppDatabase, $GrowthRecordsTable> {
+    extends Composer<_$TestDatabase, $GrowthRecordsTable> {
   $$GrowthRecordsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -10956,7 +10956,7 @@ class $$GrowthRecordsTableOrderingComposer
 }
 
 class $$GrowthRecordsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $GrowthRecordsTable> {
+    extends Composer<_$TestDatabase, $GrowthRecordsTable> {
   $$GrowthRecordsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -11027,7 +11027,7 @@ class $$GrowthRecordsTableAnnotationComposer
 class $$GrowthRecordsTableTableManager
     extends
         RootTableManager<
-          _$AppDatabase,
+          _$TestDatabase,
           $GrowthRecordsTable,
           GrowthRecord,
           $$GrowthRecordsTableFilterComposer,
@@ -11037,12 +11037,12 @@ class $$GrowthRecordsTableTableManager
           $$GrowthRecordsTableUpdateCompanionBuilder,
           (
             GrowthRecord,
-            BaseReferences<_$AppDatabase, $GrowthRecordsTable, GrowthRecord>,
+            BaseReferences<_$TestDatabase, $GrowthRecordsTable, GrowthRecord>,
           ),
           GrowthRecord,
           PrefetchHooks Function()
         > {
-  $$GrowthRecordsTableTableManager(_$AppDatabase db, $GrowthRecordsTable table)
+  $$GrowthRecordsTableTableManager(_$TestDatabase db, $GrowthRecordsTable table)
     : super(
         TableManagerState(
           db: db,
@@ -11139,7 +11139,7 @@ class $$GrowthRecordsTableTableManager
 
 typedef $$GrowthRecordsTableProcessedTableManager =
     ProcessedTableManager<
-      _$AppDatabase,
+      _$TestDatabase,
       $GrowthRecordsTable,
       GrowthRecord,
       $$GrowthRecordsTableFilterComposer,
@@ -11149,7 +11149,7 @@ typedef $$GrowthRecordsTableProcessedTableManager =
       $$GrowthRecordsTableUpdateCompanionBuilder,
       (
         GrowthRecord,
-        BaseReferences<_$AppDatabase, $GrowthRecordsTable, GrowthRecord>,
+        BaseReferences<_$TestDatabase, $GrowthRecordsTable, GrowthRecord>,
       ),
       GrowthRecord,
       PrefetchHooks Function()
@@ -11192,7 +11192,7 @@ typedef $$VaccineLibraryTableUpdateCompanionBuilder =
     });
 
 class $$VaccineLibraryTableFilterComposer
-    extends Composer<_$AppDatabase, $VaccineLibraryTable> {
+    extends Composer<_$TestDatabase, $VaccineLibraryTable> {
   $$VaccineLibraryTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -11277,7 +11277,7 @@ class $$VaccineLibraryTableFilterComposer
 }
 
 class $$VaccineLibraryTableOrderingComposer
-    extends Composer<_$AppDatabase, $VaccineLibraryTable> {
+    extends Composer<_$TestDatabase, $VaccineLibraryTable> {
   $$VaccineLibraryTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -11362,7 +11362,7 @@ class $$VaccineLibraryTableOrderingComposer
 }
 
 class $$VaccineLibraryTableAnnotationComposer
-    extends Composer<_$AppDatabase, $VaccineLibraryTable> {
+    extends Composer<_$TestDatabase, $VaccineLibraryTable> {
   $$VaccineLibraryTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -11439,7 +11439,7 @@ class $$VaccineLibraryTableAnnotationComposer
 class $$VaccineLibraryTableTableManager
     extends
         RootTableManager<
-          _$AppDatabase,
+          _$TestDatabase,
           $VaccineLibraryTable,
           VaccineLibraryData,
           $$VaccineLibraryTableFilterComposer,
@@ -11450,7 +11450,7 @@ class $$VaccineLibraryTableTableManager
           (
             VaccineLibraryData,
             BaseReferences<
-              _$AppDatabase,
+              _$TestDatabase,
               $VaccineLibraryTable,
               VaccineLibraryData
             >,
@@ -11459,7 +11459,7 @@ class $$VaccineLibraryTableTableManager
           PrefetchHooks Function()
         > {
   $$VaccineLibraryTableTableManager(
-    _$AppDatabase db,
+    _$TestDatabase db,
     $VaccineLibraryTable table,
   ) : super(
         TableManagerState(
@@ -11549,7 +11549,7 @@ class $$VaccineLibraryTableTableManager
 
 typedef $$VaccineLibraryTableProcessedTableManager =
     ProcessedTableManager<
-      _$AppDatabase,
+      _$TestDatabase,
       $VaccineLibraryTable,
       VaccineLibraryData,
       $$VaccineLibraryTableFilterComposer,
@@ -11559,7 +11559,11 @@ typedef $$VaccineLibraryTableProcessedTableManager =
       $$VaccineLibraryTableUpdateCompanionBuilder,
       (
         VaccineLibraryData,
-        BaseReferences<_$AppDatabase, $VaccineLibraryTable, VaccineLibraryData>,
+        BaseReferences<
+          _$TestDatabase,
+          $VaccineLibraryTable,
+          VaccineLibraryData
+        >,
       ),
       VaccineLibraryData,
       PrefetchHooks Function()
@@ -11614,7 +11618,7 @@ typedef $$VaccineRecordsTableUpdateCompanionBuilder =
     });
 
 class $$VaccineRecordsTableFilterComposer
-    extends Composer<_$AppDatabase, $VaccineRecordsTable> {
+    extends Composer<_$TestDatabase, $VaccineRecordsTable> {
   $$VaccineRecordsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -11729,7 +11733,7 @@ class $$VaccineRecordsTableFilterComposer
 }
 
 class $$VaccineRecordsTableOrderingComposer
-    extends Composer<_$AppDatabase, $VaccineRecordsTable> {
+    extends Composer<_$TestDatabase, $VaccineRecordsTable> {
   $$VaccineRecordsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -11844,7 +11848,7 @@ class $$VaccineRecordsTableOrderingComposer
 }
 
 class $$VaccineRecordsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $VaccineRecordsTable> {
+    extends Composer<_$TestDatabase, $VaccineRecordsTable> {
   $$VaccineRecordsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -11937,7 +11941,7 @@ class $$VaccineRecordsTableAnnotationComposer
 class $$VaccineRecordsTableTableManager
     extends
         RootTableManager<
-          _$AppDatabase,
+          _$TestDatabase,
           $VaccineRecordsTable,
           VaccineRecord,
           $$VaccineRecordsTableFilterComposer,
@@ -11947,13 +11951,13 @@ class $$VaccineRecordsTableTableManager
           $$VaccineRecordsTableUpdateCompanionBuilder,
           (
             VaccineRecord,
-            BaseReferences<_$AppDatabase, $VaccineRecordsTable, VaccineRecord>,
+            BaseReferences<_$TestDatabase, $VaccineRecordsTable, VaccineRecord>,
           ),
           VaccineRecord,
           PrefetchHooks Function()
         > {
   $$VaccineRecordsTableTableManager(
-    _$AppDatabase db,
+    _$TestDatabase db,
     $VaccineRecordsTable table,
   ) : super(
         TableManagerState(
@@ -12067,7 +12071,7 @@ class $$VaccineRecordsTableTableManager
 
 typedef $$VaccineRecordsTableProcessedTableManager =
     ProcessedTableManager<
-      _$AppDatabase,
+      _$TestDatabase,
       $VaccineRecordsTable,
       VaccineRecord,
       $$VaccineRecordsTableFilterComposer,
@@ -12077,7 +12081,7 @@ typedef $$VaccineRecordsTableProcessedTableManager =
       $$VaccineRecordsTableUpdateCompanionBuilder,
       (
         VaccineRecord,
-        BaseReferences<_$AppDatabase, $VaccineRecordsTable, VaccineRecord>,
+        BaseReferences<_$TestDatabase, $VaccineRecordsTable, VaccineRecord>,
       ),
       VaccineRecord,
       PrefetchHooks Function()
@@ -12116,7 +12120,7 @@ typedef $$AgeBenchmarkDataTableUpdateCompanionBuilder =
     });
 
 class $$AgeBenchmarkDataTableFilterComposer
-    extends Composer<_$AppDatabase, $AgeBenchmarkDataTable> {
+    extends Composer<_$TestDatabase, $AgeBenchmarkDataTable> {
   $$AgeBenchmarkDataTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -12191,7 +12195,7 @@ class $$AgeBenchmarkDataTableFilterComposer
 }
 
 class $$AgeBenchmarkDataTableOrderingComposer
-    extends Composer<_$AppDatabase, $AgeBenchmarkDataTable> {
+    extends Composer<_$TestDatabase, $AgeBenchmarkDataTable> {
   $$AgeBenchmarkDataTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -12266,7 +12270,7 @@ class $$AgeBenchmarkDataTableOrderingComposer
 }
 
 class $$AgeBenchmarkDataTableAnnotationComposer
-    extends Composer<_$AppDatabase, $AgeBenchmarkDataTable> {
+    extends Composer<_$TestDatabase, $AgeBenchmarkDataTable> {
   $$AgeBenchmarkDataTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -12329,7 +12333,7 @@ class $$AgeBenchmarkDataTableAnnotationComposer
 class $$AgeBenchmarkDataTableTableManager
     extends
         RootTableManager<
-          _$AppDatabase,
+          _$TestDatabase,
           $AgeBenchmarkDataTable,
           AgeBenchmarkDataData,
           $$AgeBenchmarkDataTableFilterComposer,
@@ -12340,7 +12344,7 @@ class $$AgeBenchmarkDataTableTableManager
           (
             AgeBenchmarkDataData,
             BaseReferences<
-              _$AppDatabase,
+              _$TestDatabase,
               $AgeBenchmarkDataTable,
               AgeBenchmarkDataData
             >,
@@ -12349,7 +12353,7 @@ class $$AgeBenchmarkDataTableTableManager
           PrefetchHooks Function()
         > {
   $$AgeBenchmarkDataTableTableManager(
-    _$AppDatabase db,
+    _$TestDatabase db,
     $AgeBenchmarkDataTable table,
   ) : super(
         TableManagerState(
@@ -12431,7 +12435,7 @@ class $$AgeBenchmarkDataTableTableManager
 
 typedef $$AgeBenchmarkDataTableProcessedTableManager =
     ProcessedTableManager<
-      _$AppDatabase,
+      _$TestDatabase,
       $AgeBenchmarkDataTable,
       AgeBenchmarkDataData,
       $$AgeBenchmarkDataTableFilterComposer,
@@ -12442,7 +12446,7 @@ typedef $$AgeBenchmarkDataTableProcessedTableManager =
       (
         AgeBenchmarkDataData,
         BaseReferences<
-          _$AppDatabase,
+          _$TestDatabase,
           $AgeBenchmarkDataTable,
           AgeBenchmarkDataData
         >,
@@ -12451,9 +12455,9 @@ typedef $$AgeBenchmarkDataTableProcessedTableManager =
       PrefetchHooks Function()
     >;
 
-class $AppDatabaseManager {
-  final _$AppDatabase _db;
-  $AppDatabaseManager(this._db);
+class $TestDatabaseManager {
+  final _$TestDatabase _db;
+  $TestDatabaseManager(this._db);
   $$TestRecordsTableTableManager get testRecords =>
       $$TestRecordsTableTableManager(_db, _db.testRecords);
   $$UsersTableTableManager get users =>
