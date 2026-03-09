@@ -4,7 +4,7 @@ import '../widgets/dashboard/baby_info_card.dart';
 import '../widgets/dashboard/quick_action_bar.dart';
 import '../widgets/dashboard/recent_activities_list.dart';
 import '../widgets/dashboard/smart_prediction_card.dart';
-import '../widgets/dashboard/timer_card_placeholder.dart';
+import '../widgets/dashboard/timer_card.dart';
 
 /// 首页 Dashboard
 ///
@@ -56,8 +56,8 @@ class _HomePageState extends State<HomePage>
                   BabyInfoCard(),
                   SizedBox(height: 16),
 
-                  // 计时器卡片占位
-                  TimerCardPlaceholder(),
+                  // 计时器卡片
+                  TimerCard(),
                   SizedBox(height: 16),
 
                   // 智能预测卡片
@@ -78,10 +78,7 @@ class _HomePageState extends State<HomePage>
           right: 0,
           // 紧贴底部导航栏
           bottom: bottomNavHeight,
-          child: IgnorePointer(
-            ignoring: false,
-            child: QuickActionBar(),
-          ),
+          child: QuickActionBar(),
         ),
       ],
     );

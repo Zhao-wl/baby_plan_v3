@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../database/tables/activity_records.dart';
 import '../../providers/providers.dart';
+import '../../theme/app_colors.dart';
 import '../../utils/format_utils.dart';
 
 /// 宝宝信息卡片组件
@@ -10,6 +12,7 @@ import '../../utils/format_utils.dart';
 /// - 头像（或默认头像）
 /// - 姓名 + 月龄
 /// - 最新体重身高数据
+/// - 计时状态（有计时时显示）
 /// - 设置按钮（占位）
 class BabyInfoCard extends ConsumerWidget {
   const BabyInfoCard({super.key});
@@ -18,6 +21,7 @@ class BabyInfoCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentBabyState = ref.watch(currentBabyProvider);
     final baby = currentBabyState.baby;
+    final timerState = ref.watch(timerProvider);
 
     // 加载中状态
     if (currentBabyState.isLoading) {
@@ -71,7 +75,8 @@ class BabyInfoCard extends ConsumerWidget {
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Text('👶', style: TextStyle(fontSize: 24)),
+                        errorBuilder: (_, __, ___) =>
+                            const Text('👶', style: TextStyle(fontSize: 24)),
                       ),
                     )
                   : const Text('👶', style: TextStyle(fontSize: 24)),
@@ -83,13 +88,22 @@ class BabyInfoCard extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  baby.name,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B), // slate-800
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      baby.name,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B), // slate-800
+                      ),
+                    ),
+                    // 计时状态指示器
+                    if (timerState.isTiming) ...[
+                      const SizedBox(width: 8),
+                      _buildTimerIndicator(timerState),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 2),
                 growthAsync.when(
@@ -151,6 +165,73 @@ class BabyInfoCard extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// 构建计时状态指示器
+  Widget _buildTimerIndicator(TimerState timerState) {
+    final activityType = timerState.activityType!;
+    final config = _getActivityConfig(activityType);
+    final duration = timerState.currentDuration;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: config.color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            timerState.isPaused ? Icons.pause : config.icon,
+            size: 12,
+            color: config.color,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            _formatShortDuration(duration),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: config.color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 获取活动类型配置
+  _ActivityConfig _getActivityConfig(ActivityType type) {
+    switch (type) {
+      case ActivityType.eat:
+        return const _ActivityConfig(
+          icon: Icons.restaurant,
+          color: AppColors.eat,
+        );
+      case ActivityType.activity:
+        return const _ActivityConfig(
+          icon: Icons.sentiment_satisfied_alt,
+          color: AppColors.activity,
+        );
+      case ActivityType.sleep:
+        return const _ActivityConfig(
+          icon: Icons.nightlight_round,
+          color: AppColors.sleep,
+        );
+      case ActivityType.poop:
+        return const _ActivityConfig(
+          icon: Icons.water_drop,
+          color: AppColors.poop,
+        );
+    }
+  }
+
+  /// 格式化短时长显示（MM:SS）
+  String _formatShortDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds.remainder(60);
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
   /// 构建无宝宝状态
@@ -227,4 +308,15 @@ class BabyInfoCard extends ConsumerWidget {
 
     return '$age · $weight · $height';
   }
+}
+
+/// 活动类型配置（简化版）
+class _ActivityConfig {
+  final IconData icon;
+  final Color color;
+
+  const _ActivityConfig({
+    required this.icon,
+    required this.color,
+  });
 }
