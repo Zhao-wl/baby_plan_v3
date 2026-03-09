@@ -285,4 +285,47 @@ Code uses `flutter_lints` preset with additional rules (see `analysis_options.ya
 
 Run `flutter analyze` to check for issues.
 
+#### 编码规范
+
+**1. 使用 const 构造函数 (`prefer_const_constructors`)**
+
+对于编译时常量的 Widget，必须使用 `const` 关键字：
+
+```dart
+// ✓ 正确
+const Text('平台: Web')
+const SizedBox(height: 8)
+const EdgeInsets.all(16.0)
+
+// ✗ 错误
+Text('平台: Web')
+SizedBox(height: 8)
+EdgeInsets.all(16.0)
+```
+
+特别注意：
+- `kIsWeb` 是编译时常量，不需要在运行时判断，编译时会自动选择正确的分支
+- 所有子元素都是 const 的 Widget 父级也应该是 const
+- 使用 `const` 可以提升性能，避免不必要的 Widget 重建
+
+**2. 避免不必要的导入 (`unnecessary_import`)**
+
+不要导入已经通过其他包导出的内容：
+
+```dart
+// ✗ 错误 - flutter_test 已经导出了 matcher
+import 'package:flutter_test/flutter_test.dart';
+import 'package:matcher/matcher.dart';  // 不需要
+
+// ✓ 正确
+import 'package:flutter_test/flutter_test.dart';
+```
+
+常见情况：
+- `flutter_test` 已包含 `matcher` 库的内容
+- 如果需要使用 `isNotNull` 等 matcher，可以从 `drift` 导入时使用 `hide` 避免冲突：
+  ```dart
+  import 'package:drift/drift.dart' hide isNotNull;
+  ```
+
 总是用中文回答！

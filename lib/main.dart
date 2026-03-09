@@ -3,23 +3,26 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_skill/flutter_skill.dart';
 import 'database/database.dart';
+import 'providers/providers.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   if (kDebugMode) FlutterSkillBinding.ensureInitialized();
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+
     return MaterialApp(
       title: 'E.A.S.Y. 育儿助手',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: themeMode,
       home: const DatabaseTestPage(),
     );
   }
@@ -144,7 +147,7 @@ class _DatabaseTestPageState extends State<DatabaseTestPage> {
                     ),
                     const SizedBox(height: 8),
                     Text('状态: $_status'),
-                    Text('平台: ${kIsWeb ? "Web" : "Native"}'),
+                    const Text('平台: Web'),
                     Text('测试记录数: $_recordCount'),
                   ],
                 ),

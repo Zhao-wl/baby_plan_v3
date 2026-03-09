@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' hide isNotNull;
-import 'package:matcher/matcher.dart' show isNotNull;
 import 'test_database.dart';
 
 void main() {

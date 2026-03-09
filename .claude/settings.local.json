@@ -41,7 +41,9 @@
       "mcp__chrome-devtools__wait_for",
       "mcp__dart__analyze_files",
       "mcp__dart__run_tests",
-      "Bash(npx openspec:*)"
+      "Bash(npx openspec:*)",
+      "WebFetch(domain:api.flutter.dev)",
+      "mcp__chrome-devtools__take_screenshot"
     ]
   }
 }

@@ -13,3 +13,4 @@ export 'family_provider.dart';
 export 'timeline_provider.dart';
 export 'stats_provider.dart';
 export 'sync_provider.dart';
+export 'theme_provider.dart';
