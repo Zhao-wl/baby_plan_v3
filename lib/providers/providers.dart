@@ -15,3 +15,5 @@ export 'stats_provider.dart';
 export 'sync_provider.dart';
 export 'theme_provider.dart';
 export 'navigation_provider.dart';
+export 'growth_record_provider.dart';
+export 'recent_activities_provider.dart';

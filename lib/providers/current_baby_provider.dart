@@ -92,13 +92,15 @@ class CurrentBabyNotifier extends Notifier<CurrentBabyState> {
 
   /// 验证当前宝宝是否仍然有效
   void _validateCurrentBaby(List<Baby> babies) {
-    if (state.isLoading) return;
-
     final currentBaby = state.baby;
+
     if (currentBaby == null) {
       // 当前没有选中宝宝，尝试选择第一个
       if (babies.isNotEmpty) {
         selectBaby(babies.first);
+      } else {
+        // 没有可用宝宝
+        state = const CurrentBabyState(baby: null, isLoading: false);
       }
       return;
     }
