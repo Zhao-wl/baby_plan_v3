@@ -43,7 +43,18 @@
       "mcp__dart__run_tests",
       "Bash(npx openspec:*)",
       "WebFetch(domain:api.flutter.dev)",
-      "mcp__chrome-devtools__take_screenshot"
+      "mcp__chrome-devtools__take_screenshot",
+      "Bash(git push:*)",
+      "mcp__dart__hot_reload",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__dart__stop_app",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__resize_page",
+      "Bash(taskkill /F /IM chrome.exe 2>/dev/null; sleep 2; echo \"Chrome closed\")",
+      "mcp__chrome-devtools__emulate",
+      "mcp__dart__list_running_apps"
     ]
   }
 }

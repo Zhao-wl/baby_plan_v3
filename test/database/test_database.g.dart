@@ -390,6 +390,21 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _isGuestMeta = const VerificationMeta(
+    'isGuest',
+  );
+  @override
+  late final GeneratedColumn<bool> isGuest = GeneratedColumn<bool>(
+    'is_guest',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_guest" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -403,6 +418,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     deletedAt,
     createdAt,
     updatedAt,
+    isGuest,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -484,6 +500,12 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('is_guest')) {
+      context.handle(
+        _isGuestMeta,
+        isGuest.isAcceptableOrUnknown(data['is_guest']!, _isGuestMeta),
+      );
+    }
     return context;
   }
 
@@ -537,6 +559,10 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      isGuest: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_guest'],
+      )!,
     );
   }
 
@@ -579,6 +605,9 @@ class User extends DataClass implements Insertable<User> {
 
   /// 更新时间
   final DateTime updatedAt;
+
+  /// 是否为游客用户
+  final bool isGuest;
   const User({
     required this.id,
     this.phone,
@@ -591,6 +620,7 @@ class User extends DataClass implements Insertable<User> {
     this.deletedAt,
     required this.createdAt,
     required this.updatedAt,
+    required this.isGuest,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -618,6 +648,7 @@ class User extends DataClass implements Insertable<User> {
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['is_guest'] = Variable<bool>(isGuest);
     return map;
   }
 
@@ -646,6 +677,7 @@ class User extends DataClass implements Insertable<User> {
           : Value(deletedAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      isGuest: Value(isGuest),
     );
   }
 
@@ -666,6 +698,7 @@ class User extends DataClass implements Insertable<User> {
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      isGuest: serializer.fromJson<bool>(json['isGuest']),
     );
   }
   @override
@@ -683,6 +716,7 @@ class User extends DataClass implements Insertable<User> {
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'isGuest': serializer.toJson<bool>(isGuest),
     };
   }
 
@@ -698,6 +732,7 @@ class User extends DataClass implements Insertable<User> {
     Value<DateTime?> deletedAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? isGuest,
   }) => User(
     id: id ?? this.id,
     phone: phone.present ? phone.value : this.phone,
@@ -710,6 +745,7 @@ class User extends DataClass implements Insertable<User> {
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    isGuest: isGuest ?? this.isGuest,
   );
   User copyWithCompanion(UsersCompanion data) {
     return User(
@@ -726,6 +762,7 @@ class User extends DataClass implements Insertable<User> {
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isGuest: data.isGuest.present ? data.isGuest.value : this.isGuest,
     );
   }
 
@@ -742,7 +779,8 @@ class User extends DataClass implements Insertable<User> {
           ..write('isDeleted: $isDeleted, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isGuest: $isGuest')
           ..write(')'))
         .toString();
   }
@@ -760,6 +798,7 @@ class User extends DataClass implements Insertable<User> {
     deletedAt,
     createdAt,
     updatedAt,
+    isGuest,
   );
   @override
   bool operator ==(Object other) =>
@@ -775,7 +814,8 @@ class User extends DataClass implements Insertable<User> {
           other.isDeleted == this.isDeleted &&
           other.deletedAt == this.deletedAt &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.isGuest == this.isGuest);
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
@@ -790,6 +830,7 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<DateTime?> deletedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<bool> isGuest;
   const UsersCompanion({
     this.id = const Value.absent(),
     this.phone = const Value.absent(),
@@ -802,6 +843,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.isGuest = const Value.absent(),
   });
   UsersCompanion.insert({
     this.id = const Value.absent(),
@@ -815,6 +857,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.isGuest = const Value.absent(),
   }) : nickname = Value(nickname);
   static Insertable<User> custom({
     Expression<int>? id,
@@ -828,6 +871,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     Expression<DateTime>? deletedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<bool>? isGuest,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -841,6 +885,7 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (isGuest != null) 'is_guest': isGuest,
     });
   }
 
@@ -856,6 +901,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     Value<DateTime?>? deletedAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<bool>? isGuest,
   }) {
     return UsersCompanion(
       id: id ?? this.id,
@@ -869,6 +915,7 @@ class UsersCompanion extends UpdateCompanion<User> {
       deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      isGuest: isGuest ?? this.isGuest,
     );
   }
 
@@ -908,6 +955,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (isGuest.present) {
+      map['is_guest'] = Variable<bool>(isGuest.value);
+    }
     return map;
   }
 
@@ -924,7 +974,8 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('isDeleted: $isDeleted, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isGuest: $isGuest')
           ..write(')'))
         .toString();
   }
@@ -8807,6 +8858,7 @@ typedef $$UsersTableCreateCompanionBuilder =
       Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<bool> isGuest,
     });
 typedef $$UsersTableUpdateCompanionBuilder =
     UsersCompanion Function({
@@ -8821,6 +8873,7 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<bool> isGuest,
     });
 
 class $$UsersTableFilterComposer extends Composer<_$TestDatabase, $UsersTable> {
@@ -8883,6 +8936,11 @@ class $$UsersTableFilterComposer extends Composer<_$TestDatabase, $UsersTable> {
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isGuest => $composableBuilder(
+    column: $table.isGuest,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -8950,6 +9008,11 @@ class $$UsersTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isGuest => $composableBuilder(
+    column: $table.isGuest,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UsersTableAnnotationComposer
@@ -8995,6 +9058,9 @@ class $$UsersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isGuest =>
+      $composableBuilder(column: $table.isGuest, builder: (column) => column);
 }
 
 class $$UsersTableTableManager
@@ -9036,6 +9102,7 @@ class $$UsersTableTableManager
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isGuest = const Value.absent(),
               }) => UsersCompanion(
                 id: id,
                 phone: phone,
@@ -9048,6 +9115,7 @@ class $$UsersTableTableManager
                 deletedAt: deletedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                isGuest: isGuest,
               ),
           createCompanionCallback:
               ({
@@ -9062,6 +9130,7 @@ class $$UsersTableTableManager
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isGuest = const Value.absent(),
               }) => UsersCompanion.insert(
                 id: id,
                 phone: phone,
@@ -9074,6 +9143,7 @@ class $$UsersTableTableManager
                 deletedAt: deletedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                isGuest: isGuest,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

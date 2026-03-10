@@ -32,8 +32,10 @@ class CurrentBabyNotifier extends Notifier<CurrentBabyState> {
   @override
   CurrentBabyState build() {
     // 监听宝宝列表变化，自动更新当前宝宝
-    ref.listen<AsyncValue<List<Baby>>>(babiesProvider, (prev, next) {
-      next.whenData((babies) => _validateCurrentBaby(babies));
+    ref.listen<BabiesState>(babiesProvider, (prev, next) {
+      if (!next.isLoading && next.error == null) {
+        _validateCurrentBaby(next.babies);
+      }
     });
 
     // 初始化时从设置恢复宝宝选择
@@ -47,38 +49,32 @@ class CurrentBabyNotifier extends Notifier<CurrentBabyState> {
     settingsAsync.when(
       data: (settings) async {
         final savedBabyId = settings.currentBabyId;
+        final babiesState = ref.read(babiesProvider);
+
+        if (babiesState.isLoading) {
+          state = const CurrentBabyState(isLoading: true);
+          return;
+        }
+
+        if (babiesState.error != null) {
+          state = const CurrentBabyState(isLoading: false);
+          return;
+        }
+
+        final babies = babiesState.babies;
+
         if (savedBabyId != null) {
           // 验证保存的宝宝 ID 是否有效
-          final asyncBabies = ref.read(babiesProvider);
-          asyncBabies.when(
-            data: (babies) async {
-              try {
-                final baby = babies.firstWhere((b) => b.id == savedBabyId);
-                state = CurrentBabyState(baby: baby, isLoading: false);
-              } catch (_) {
-                // 宝宝不存在，选择第一个可用宝宝
-                await _selectFirstBaby(babies);
-              }
-            },
-            loading: () {
-              state = const CurrentBabyState(isLoading: true);
-            },
-            error: (_, __) {
-              state = const CurrentBabyState(isLoading: false);
-            },
-          );
+          try {
+            final baby = babies.firstWhere((b) => b.id == savedBabyId);
+            state = CurrentBabyState(baby: baby, isLoading: false);
+          } catch (_) {
+            // 宝宝不存在，选择第一个可用宝宝
+            await _selectFirstBaby(babies);
+          }
         } else {
           // 没有保存的宝宝，选择第一个
-          final asyncBabies = ref.read(babiesProvider);
-          asyncBabies.when(
-            data: (babies) async => await _selectFirstBaby(babies),
-            loading: () {
-              state = const CurrentBabyState(isLoading: true);
-            },
-            error: (_, __) {
-              state = const CurrentBabyState(isLoading: false);
-            },
-          );
+          await _selectFirstBaby(babies);
         }
       },
       loading: () {

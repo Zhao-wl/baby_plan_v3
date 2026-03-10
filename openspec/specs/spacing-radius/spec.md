@@ -65,3 +65,35 @@
 #### Scenario: 导航图标尺寸
 - **WHEN** 使用底部导航栏图标
 - **THEN** 系统 SHALL 使用 `AppSpacing.iconLg`（24px）尺寸
+
+---
+
+### Requirement: 响应式断点系统
+系统 SHALL 定义响应式断点用于适配不同屏幕尺寸。
+
+**断点定义：**
+| 名称 | 宽度范围 | 说明 |
+|------|----------|------|
+| compact | < 600px | 手机竖屏 |
+| medium | 600-840px | 手机横屏/小平板 |
+| expanded | > 840px | 平板 |
+
+#### Scenario: 判断当前断点
+- **WHEN** 系统需要判断当前设备属于哪个断点
+- **THEN** 系统 SHALL 根据屏幕宽度返回对应的断点名称
+
+---
+
+### Requirement: 响应式间距变量
+系统 SHALL 定义响应式断点相关的间距辅助变量。
+
+**响应式间距：**
+| 变量名 | 用途 |
+|--------|------|
+| sheetMaxWidthCompact | 窄屏弹窗最大宽度（null，无限制）|
+| sheetMaxWidthMedium | 中屏弹窗最大宽度（600.0）|
+| sheetMaxWidthExpanded | 宽屏弹窗最大宽度（720.0）|
+
+#### Scenario: 获取弹窗最大宽度
+- **WHEN** 系统需要根据断点获取弹窗最大宽度
+- **THEN** 系统 SHALL 返回对应断点的最大宽度值

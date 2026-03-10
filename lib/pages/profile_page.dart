@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/providers.dart';
+import '../widgets/profile/baby_add_sheet.dart';
 
 /// 我的页面
 class ProfilePage extends ConsumerStatefulWidget {
@@ -111,6 +112,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   Widget _buildMenuSection(BuildContext context, bool isGuest) {
     return Column(
       children: [
+        // 宝宝管理
+        _MenuTile(
+          icon: Icons.child_care_outlined,
+          title: '宝宝管理',
+          subtitle: '添加和管理宝宝信息',
+          onTap: () => _handleBabyManagementTap(context),
+        ),
+        const Divider(indent: 16, endIndent: 16),
         // 云同步设置
         _MenuTile(
           icon: Icons.cloud_sync_outlined,
@@ -176,6 +185,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
         ],
       ),
     );
+  }
+
+  /// 处理宝宝管理点击
+  void _handleBabyManagementTap(BuildContext context) {
+    BabyAddSheet.show(context);
   }
 
   /// 处理云同步点击

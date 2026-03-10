@@ -65,6 +65,22 @@ class AppSpacing {
 
   /// 空状态图标
   static const double iconXxl = 48.0;
+
+  // ==================== 响应式断点 ====================
+
+  /// 紧凑断点上限（手机竖屏）
+  static const double breakpointCompact = 600.0;
+
+  /// 展开断点下限（平板）
+  static const double breakpointExpanded = 840.0;
+
+  // ==================== 弹窗最大宽度 ====================
+
+  /// 中屏弹窗最大宽度
+  static const double sheetMaxWidthMedium = 600.0;
+
+  /// 宽屏弹窗最大宽度
+  static const double sheetMaxWidthExpanded = 720.0;
 }
 
 /// 圆角边框帮助类
