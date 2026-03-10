@@ -252,7 +252,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
 
       if (mounted) {
         // 触发数据变化通知
-        ref.read(activityDataChangeProvider.notifier).state++;
+        ref.read(activityDataChangeProvider.notifier).notify();
         _refreshData();
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: false);
@@ -292,7 +292,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
 
       if (mounted) {
         // 触发数据变化通知
-        ref.read(activityDataChangeProvider.notifier).state++;
+        ref.read(activityDataChangeProvider.notifier).notify();
         _refreshData();
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: true);
@@ -380,7 +380,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
 
       if (mounted) {
         // 触发数据变化通知
-        ref.read(activityDataChangeProvider.notifier).state++;
+        ref.read(activityDataChangeProvider.notifier).notify();
         _refreshData();
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: false);
@@ -448,7 +448,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
 
       if (mounted) {
         // 触发数据变化通知
-        ref.read(activityDataChangeProvider.notifier).state++;
+        ref.read(activityDataChangeProvider.notifier).notify();
         _refreshData();
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: true);
