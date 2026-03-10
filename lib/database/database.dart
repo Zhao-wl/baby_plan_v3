@@ -36,7 +36,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -54,6 +54,10 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
           // 创建索引
           await _createIndexes(m);
+        }
+        if (from < 3) {
+          // 从 v2 升级到 v3：添加 isGuest 字段
+          await m.addColumn(users, users.isGuest);
         }
       },
     );

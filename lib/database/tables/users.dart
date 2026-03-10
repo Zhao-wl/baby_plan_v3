@@ -37,4 +37,7 @@ class Users extends Table {
 
   /// 更新时间
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// 是否为游客用户
+  BoolColumn get isGuest => boolean().withDefault(const Constant(false))();
 }

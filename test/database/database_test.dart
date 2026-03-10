@@ -31,11 +31,11 @@ void main() {
     // 这些测试验证数据库 schema 版本和表结构
     // 实际的数据库操作测试需要在集成测试中进行
 
-    test('Database schema version should be 2', () {
-      // 验证 schema 版本在 database.dart 中定义为 2
+    test('Database schema version should be 3', () {
+      // 验证 schema 版本在 database.dart 中定义为 3
       // 这是一个编译时检查，如果版本号改变，测试需要更新
-      const expectedSchemaVersion = 2;
-      expect(expectedSchemaVersion, equals(2));
+      const expectedSchemaVersion = 3;
+      expect(expectedSchemaVersion, equals(3));
     });
 
     test('All table files should exist', () {

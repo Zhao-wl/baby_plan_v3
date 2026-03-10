@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'auth_provider.dart';
 import 'database_provider.dart';
 import 'settings_provider.dart';
 
@@ -20,12 +21,16 @@ class SyncState {
   /// 同步错误信息
   final String? errorMessage;
 
+  /// 是否禁用（游客模式）
+  final bool isDisabled;
+
   const SyncState({
     this.isOnline = true,
     this.pendingCount = 0,
     this.lastSyncTime,
     this.isSyncing = false,
     this.errorMessage,
+    this.isDisabled = false,
   });
 
   SyncState copyWith({
@@ -34,6 +39,7 @@ class SyncState {
     DateTime? lastSyncTime,
     bool? isSyncing,
     String? errorMessage,
+    bool? isDisabled,
   }) {
     return SyncState(
       isOnline: isOnline ?? this.isOnline,
@@ -41,6 +47,7 @@ class SyncState {
       lastSyncTime: lastSyncTime ?? this.lastSyncTime,
       isSyncing: isSyncing ?? this.isSyncing,
       errorMessage: errorMessage ?? this.errorMessage,
+      isDisabled: isDisabled ?? this.isDisabled,
     );
   }
 }
@@ -54,6 +61,14 @@ class SyncNotifier extends Notifier<SyncState> {
   }
 
   Future<void> _initSyncState() async {
+    // 检查是否为游客模式
+    final isGuest = ref.read(isGuestProvider);
+    if (isGuest) {
+      // 游客模式下禁用同步
+      state = const SyncState(isDisabled: true);
+      return;
+    }
+
     // 从设置恢复上次同步时间
     final settingsAsync = ref.read(settingsProvider);
     DateTime? lastSyncTime;
@@ -115,7 +130,14 @@ class SyncNotifier extends Notifier<SyncState> {
   /// 触发同步
   ///
   /// 预留方法，实际云同步逻辑在阶段四实现。
+  /// 游客模式下不执行同步，显示升级提示。
   Future<void> syncNow() async {
+    // 游客模式禁用同步
+    if (state.isDisabled) {
+      state = state.copyWith(errorMessage: '游客模式暂不支持云同步，请升级为正式账号');
+      return;
+    }
+
     if (state.isSyncing) return;
 
     state = state.copyWith(isSyncing: true, errorMessage: null);

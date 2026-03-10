@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/common/guest_status_bar.dart';
 import '../widgets/dashboard/baby_info_card.dart';
 import '../widgets/dashboard/quick_action_bar.dart';
 import '../widgets/dashboard/recent_activities_list.dart';
@@ -52,6 +53,10 @@ class _HomePageState extends State<HomePage>
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 游客状态提示栏
+                  GuestStatusBar(),
+                  SizedBox(height: 16),
+
                   // 宝宝信息卡片
                   BabyInfoCard(),
                   SizedBox(height: 16),
