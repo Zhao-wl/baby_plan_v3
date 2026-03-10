@@ -225,7 +225,7 @@ class TimerNotifier extends Notifier<TimerState> {
         await (db.delete(db.activityRecords)
           ..where((t) => t.id.equals(state.currentRecordId!)))
             .go();
-        ref.read(activityDataChangeProvider.notifier).state++;
+        ref.read(activityDataChangeProvider.notifier).notify();
       }
       await _clearState();
       return null;
@@ -322,7 +322,7 @@ class TimerNotifier extends Notifier<TimerState> {
         await (db.delete(db.activityRecords)
           ..where((t) => t.id.equals(state.currentRecordId!)))
             .go();
-        ref.read(activityDataChangeProvider.notifier).state++;
+        ref.read(activityDataChangeProvider.notifier).notify();
       }
       await _clearState();
       return null;
@@ -351,7 +351,7 @@ class TimerNotifier extends Notifier<TimerState> {
         await (db.delete(db.activityRecords)
           ..where((t) => t.id.equals(state.currentRecordId!)))
             .go();
-        ref.read(activityDataChangeProvider.notifier).state++;
+        ref.read(activityDataChangeProvider.notifier).notify();
       } catch (e) {
         // 忽略删除失败
       }

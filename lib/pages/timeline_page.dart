@@ -206,7 +206,7 @@ class _TimelinePageState extends ConsumerState<TimelinePage>
       final babyId = ref.read(currentBabyProvider).baby?.id;
       if (babyId != null) {
         // 触发全局数据变化通知
-        ref.read(activityDataChangeProvider.notifier).state++;
+        ref.read(activityDataChangeProvider.notifier).notify();
         ref.invalidate(timelineProvider(
           TimelineQuery(babyId: babyId, date: _selectedDate),
         ));
