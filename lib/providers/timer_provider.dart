@@ -223,7 +223,7 @@ class TimerNotifier extends Notifier<TimerState> {
       if (state.currentRecordId != null) {
         final db = ref.read(databaseProvider);
         await (db.delete(db.activityRecords)
-              ..where((t) => t.id.equals(state.currentRecordId!)))
+          ..where((t) => t.id.equals(state.currentRecordId!)))
             .go();
         ref.read(activityDataChangeProvider.notifier).state++;
       }
@@ -238,7 +238,7 @@ class TimerNotifier extends Notifier<TimerState> {
     if (state.currentRecordId != null) {
       // 更新现有记录
       final existing = await (db.select(db.activityRecords)
-            ..where((t) => t.id.equals(state.currentRecordId!)))
+        ..where((t) => t.id.equals(state.currentRecordId!)))
           .getSingleOrNull();
       if (existing != null) {
         await db.update(db.activityRecords).replace(
@@ -320,7 +320,7 @@ class TimerNotifier extends Notifier<TimerState> {
       if (state.currentRecordId != null) {
         final db = ref.read(databaseProvider);
         await (db.delete(db.activityRecords)
-              ..where((t) => t.id.equals(state.currentRecordId!)))
+          ..where((t) => t.id.equals(state.currentRecordId!)))
             .go();
         ref.read(activityDataChangeProvider.notifier).state++;
       }
@@ -349,7 +349,7 @@ class TimerNotifier extends Notifier<TimerState> {
       try {
         final db = ref.read(databaseProvider);
         await (db.delete(db.activityRecords)
-              ..where((t) => t.id.equals(state.currentRecordId!)))
+          ..where((t) => t.id.equals(state.currentRecordId!)))
             .go();
         ref.read(activityDataChangeProvider.notifier).state++;
       } catch (e) {
