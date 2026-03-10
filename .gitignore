@@ -1,7 +1,7 @@
-# Chrome DevTools trace
-chrome_trace.json
+# Claude Code
+.claude/
 
-# Miscellaneous
+# Chrome DevTools trace
 *.class
 *.log
 *.pyc

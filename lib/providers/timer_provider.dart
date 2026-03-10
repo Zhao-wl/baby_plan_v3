@@ -222,9 +222,9 @@ class TimerNotifier extends Notifier<TimerState> {
       // 删除草稿记录
       if (state.currentRecordId != null) {
         final db = ref.read(databaseProvider);
-        await db.delete(db.activityRecords).delete(
-          ActivityRecord(id: state.currentRecordId!),
-        );
+        await (db.delete(db.activityRecords)
+              ..where((t) => t.id.equals(state.currentRecordId!)))
+            .go();
         ref.read(activityDataChangeProvider.notifier).state++;
       }
       await _clearState();
@@ -237,9 +237,9 @@ class TimerNotifier extends Notifier<TimerState> {
 
     if (state.currentRecordId != null) {
       // 更新现有记录
-      final existing = await db.select(db.activityRecords).getSingleOrNull(
-        state.currentRecordId!,
-      );
+      final existing = await (db.select(db.activityRecords)
+            ..where((t) => t.id.equals(state.currentRecordId!)))
+          .getSingleOrNull();
       if (existing != null) {
         await db.update(db.activityRecords).replace(
           existing.copyWith(
@@ -319,9 +319,9 @@ class TimerNotifier extends Notifier<TimerState> {
     if (duration.inSeconds < 1) {
       if (state.currentRecordId != null) {
         final db = ref.read(databaseProvider);
-        await db.delete(db.activityRecords).delete(
-          ActivityRecord(id: state.currentRecordId!),
-        );
+        await (db.delete(db.activityRecords)
+              ..where((t) => t.id.equals(state.currentRecordId!)))
+            .go();
         ref.read(activityDataChangeProvider.notifier).state++;
       }
       await _clearState();
@@ -348,9 +348,9 @@ class TimerNotifier extends Notifier<TimerState> {
     if (state.currentRecordId != null) {
       try {
         final db = ref.read(databaseProvider);
-        await db.delete(db.activityRecords).delete(
-          ActivityRecord(id: state.currentRecordId!),
-        );
+        await (db.delete(db.activityRecords)
+              ..where((t) => t.id.equals(state.currentRecordId!)))
+            .go();
         ref.read(activityDataChangeProvider.notifier).state++;
       } catch (e) {
         // 忽略删除失败

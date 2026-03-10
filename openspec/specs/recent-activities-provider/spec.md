@@ -6,7 +6,7 @@
 ## Requirements
 ### Requirement: 查询最近活动记录
 
-系统 SHALL 提供 Provider 查询指定宝宝的最近 N 条活动记录。
+系统 SHALL 提供 Provider 查询指定宝宝的最近 N 条活动记录，并在数据变化时自动刷新。
 
 #### Scenario: 有活动记录时返回列表
 - **WHEN** 宝宝有活动记录
@@ -15,6 +15,10 @@
 #### Scenario: 无活动记录时返回空列表
 - **WHEN** 宝宝没有任何活动记录
 - **THEN** 返回空列表
+
+#### Scenario: 数据变化时自动刷新
+- **WHEN** `activityDataChangeProvider` 的值变化
+- **THEN** `recentActivitiesProvider` 自动重新查询并返回最新数据
 
 ### Requirement: 可配置返回数量
 

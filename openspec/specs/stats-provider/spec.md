@@ -5,11 +5,15 @@ TBD - created by archiving change riverpod-architecture. Update Purpose after ar
 ## Requirements
 ### Requirement: 统计数据聚合
 
-系统 SHALL 提供 `statsProvider` 聚合 E.A.S.Y 各类活动统计数据。
+系统 SHALL 提供 `statsProvider` 聚合 E.A.S.Y 各类活动统计数据，并在数据变化时自动刷新。
 
 #### Scenario: 按日期范围聚合
 - **WHEN** 指定日期范围和宝宝 ID
 - **THEN** 返回该范围内的活动统计
+
+#### Scenario: 数据变化时自动刷新
+- **WHEN** `activityDataChangeProvider` 的值变化
+- **THEN** `statsProvider` 自动重新查询并返回最新统计数据
 
 ### Requirement: 统计周期支持
 

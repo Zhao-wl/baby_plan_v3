@@ -5,7 +5,7 @@ TBD - created by archiving change riverpod-architecture. Update Purpose after ar
 ## Requirements
 ### Requirement: 时间线数据查询
 
-系统 SHALL 提供 `timelineProvider` 根据日期查询活动记录。
+系统 SHALL 提供 `timelineProvider` 根据日期查询活动记录，并在数据变化时自动刷新。
 
 #### Scenario: 按日期查询活动记录
 - **WHEN** 指定日期和宝宝 ID
@@ -14,6 +14,10 @@ TBD - created by archiving change riverpod-architecture. Update Purpose after ar
 #### Scenario: 记录按时间排序
 - **WHEN** 查询时间线数据
 - **THEN** 活动记录按 startTime 升序排列
+
+#### Scenario: 数据变化时自动刷新
+- **WHEN** `activityDataChangeProvider` 的值变化
+- **THEN** `timelineProvider` 自动重新查询并返回最新数据
 
 ### Requirement: 时间线参数化
 
