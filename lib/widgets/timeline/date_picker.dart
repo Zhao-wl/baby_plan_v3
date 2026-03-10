@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -135,12 +136,34 @@ class _TimelineDatePickerState extends ConsumerState<TimelineDatePicker> {
     return weekdays[weekday - 1];
   }
 
+  /// 显示年月选择弹窗
+  Future<void> _showDatePicker() async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: widget.selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      locale: const Locale('zh', 'CN'),
+    );
+
+    if (selected != null) {
+      widget.onDateSelected(selected);
+      // 计算并跳转到对应周
+      final targetPage = _calculatePageForDate(selected);
+      _pageController.animateToPage(
+        targetPage,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      height: 80,
+      height: 120,
       decoration: BoxDecoration(
         color: colorScheme.surface,
         boxShadow: [
@@ -151,18 +174,68 @@ class _TimelineDatePickerState extends ConsumerState<TimelineDatePicker> {
           ),
         ],
       ),
-      child: PageView.builder(
-        controller: _pageController,
-        onPageChanged: (page) {
-          setState(() {
-            _currentPage = page;
-          });
-        },
-        itemBuilder: (context, page) {
-          final weekStart = _getWeekStartForPage(page);
-          final weekModel = WeekModel(startDate: weekStart);
-          return _buildWeekView(weekModel);
-        },
+      child: Column(
+        children: [
+          // 年月显示 Header
+          _buildHeader(),
+          // 周视图
+          Expanded(
+            child: ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(
+                dragDevices: {
+                  PointerDeviceKind.touch,
+                  PointerDeviceKind.mouse,
+                },
+              ),
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (page) {
+                  setState(() {
+                    _currentPage = page;
+                  });
+                },
+                itemBuilder: (context, page) {
+                  final weekStart = _getWeekStartForPage(page);
+                  final weekModel = WeekModel(startDate: weekStart);
+                  return _buildWeekView(weekModel);
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建年月显示 Header
+  Widget _buildHeader() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final yearMonth = '${widget.selectedDate.year}年${widget.selectedDate.month}月';
+
+    return GestureDetector(
+      onTap: _showDatePicker,
+      child: Container(
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              yearMonth,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.keyboard_arrow_down,
+              size: 20,
+              color: colorScheme.onSurface.withAlpha(153),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -182,6 +255,7 @@ class _TimelineDatePickerState extends ConsumerState<TimelineDatePicker> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: () => widget.onDateSelected(date),
       child: Container(
         width: 44,
