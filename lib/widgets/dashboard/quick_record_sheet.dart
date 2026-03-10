@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:baby_plan_v3/database/tables/activity_records.dart';
+import 'package:baby_plan_v3/providers/activity_data_change_provider.dart';
 import 'package:baby_plan_v3/providers/current_baby_provider.dart';
 import 'package:baby_plan_v3/providers/database_provider.dart';
 import 'package:baby_plan_v3/providers/timeline_provider.dart';
@@ -250,6 +251,8 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
           );
 
       if (mounted) {
+        // 触发数据变化通知
+        ref.read(activityDataChangeProvider.notifier).state++;
         _refreshData();
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: false);
@@ -288,6 +291,8 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
           );
 
       if (mounted) {
+        // 触发数据变化通知
+        ref.read(activityDataChangeProvider.notifier).state++;
         _refreshData();
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: true);
@@ -374,6 +379,8 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
           );
 
       if (mounted) {
+        // 触发数据变化通知
+        ref.read(activityDataChangeProvider.notifier).state++;
         _refreshData();
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: false);
@@ -440,6 +447,8 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
           );
 
       if (mounted) {
+        // 触发数据变化通知
+        ref.read(activityDataChangeProvider.notifier).state++;
         _refreshData();
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: true);

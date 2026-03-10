@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
+import 'activity_data_change_provider.dart';
 import 'database_provider.dart';
 
 /// 跨天活动视图模型
@@ -57,6 +58,9 @@ class TimelineQuery {
 ///
 /// 根据宝宝 ID 和日期查询活动记录，支持跨天活动。
 final timelineProvider = FutureProvider.family<List<ActivityRecord>, TimelineQuery>((ref, query) async {
+  // 监听数据变化通知，当活动记录变化时自动刷新
+  ref.watch(activityDataChangeProvider);
+
   final db = ref.watch(databaseProvider);
 
   // 计算日期范围：当天 00:00:00 到 23:59:59
@@ -96,6 +100,9 @@ final timelineProvider = FutureProvider.family<List<ActivityRecord>, TimelineQue
 ///
 /// 返回当天的活动，以 CrossDayActivityView 形式包装，支持跨天标记。
 final crossDayTimelineProvider = FutureProvider.family<List<CrossDayActivityView>, TimelineQuery>((ref, query) async {
+  // 监听数据变化通知
+  ref.watch(activityDataChangeProvider);
+
   final records = await ref.watch(timelineProvider(query).future);
   final startOfDay = DateTime(query.date.year, query.date.month, query.date.day);
   final endOfDay = startOfDay.add(const Duration(days: 1));
@@ -187,6 +194,9 @@ class DateRangeQuery {
 ///
 /// 返回指定日期范围内的所有活动记录。
 final activityRecordsByDateRangeProvider = FutureProvider.family<List<ActivityRecord>, DateRangeQuery>((ref, query) async {
+  // 监听数据变化通知
+  ref.watch(activityDataChangeProvider);
+
   final db = ref.watch(databaseProvider);
 
   final records = await (db.select(db.activityRecords).get());

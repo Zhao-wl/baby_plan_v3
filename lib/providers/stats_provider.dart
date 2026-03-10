@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'activity_data_change_provider.dart';
 import 'database_provider.dart';
 
 /// 统计周期枚举
@@ -106,6 +107,9 @@ class StatsQuery {
 ///
 /// 根据宝宝 ID、日期和周期计算统计数据。
 final statsProvider = FutureProvider.family<StatsData, StatsQuery>((ref, query) async {
+  // 监听数据变化通知
+  ref.watch(activityDataChangeProvider);
+
   final db = ref.watch(databaseProvider);
   final range = query.dateRange;
 

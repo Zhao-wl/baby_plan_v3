@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
 import '../database/tables/activity_records.dart';
+import '../providers/activity_data_change_provider.dart';
 import '../providers/current_baby_provider.dart';
 import '../providers/database_provider.dart';
 import '../providers/timeline_provider.dart';
@@ -204,6 +205,8 @@ class _TimelinePageState extends ConsumerState<TimelinePage>
       // 刷新时间线数据
       final babyId = ref.read(currentBabyProvider).baby?.id;
       if (babyId != null) {
+        // 触发全局数据变化通知
+        ref.read(activityDataChangeProvider.notifier).state++;
         ref.invalidate(timelineProvider(
           TimelineQuery(babyId: babyId, date: _selectedDate),
         ));

@@ -8,6 +8,7 @@ const String kTimerStartTime = 'timer_start_time';
 const String kTimerIsPaused = 'timer_is_paused';
 const String kTimerPausedDuration = 'timer_paused_duration';
 const String kTimerPausedAt = 'timer_paused_at';
+const String kTimerCurrentRecordId = 'timer_current_record_id';
 
 /// 计时器存储服务
 ///
@@ -24,6 +25,7 @@ class TimerStorageService {
     required bool isPaused,
     required Duration pausedDuration,
     DateTime? pausedAt,
+    int? currentRecordId,
   }) async {
     if (activityType == null || startTime == null) {
       // 清除所有计时数据
@@ -40,6 +42,12 @@ class TimerStorageService {
       await _prefs.setString(kTimerPausedAt, pausedAt.toIso8601String());
     } else {
       await _prefs.remove(kTimerPausedAt);
+    }
+
+    if (currentRecordId != null) {
+      await _prefs.setInt(kTimerCurrentRecordId, currentRecordId);
+    } else {
+      await _prefs.remove(kTimerCurrentRecordId);
     }
   }
 
@@ -58,6 +66,7 @@ class TimerStorageService {
     final isPaused = _prefs.getBool(kTimerIsPaused) ?? false;
     final pausedDurationSeconds = _prefs.getInt(kTimerPausedDuration) ?? 0;
     final pausedAtStr = _prefs.getString(kTimerPausedAt);
+    final currentRecordId = _prefs.getInt(kTimerCurrentRecordId);
 
     return {
       'activityType': ActivityType.values.firstWhere(
@@ -68,6 +77,7 @@ class TimerStorageService {
       'isPaused': isPaused,
       'pausedDuration': Duration(seconds: pausedDurationSeconds),
       'pausedAt': pausedAtStr != null ? DateTime.parse(pausedAtStr) : null,
+      'currentRecordId': currentRecordId,
     };
   }
 
@@ -78,5 +88,6 @@ class TimerStorageService {
     await _prefs.remove(kTimerIsPaused);
     await _prefs.remove(kTimerPausedDuration);
     await _prefs.remove(kTimerPausedAt);
+    await _prefs.remove(kTimerCurrentRecordId);
   }
 }

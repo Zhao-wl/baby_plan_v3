@@ -5,6 +5,7 @@
 /// import 'package:baby_plan_v3/providers/providers.dart';
 /// ```
 
+export 'activity_data_change_provider.dart';
 export 'auth_provider.dart';
 export 'database_provider.dart';
 export 'settings_provider.dart';

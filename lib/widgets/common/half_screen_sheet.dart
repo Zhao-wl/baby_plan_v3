@@ -9,7 +9,7 @@ enum _Breakpoint { compact, medium, expanded }
 /// 提供可复用的半屏弹窗功能，支持：
 /// - 从下往上滑入动画（300ms, easeOutCubic）
 /// - 遮罩层（半透明 + 模糊）
-/// - 下拉关闭手势
+/// - 点击遮罩关闭
 /// - 数据变更检测 + 二次确认机制
 class HalfScreenSheet {
   /// 显示半屏弹窗
@@ -32,6 +32,8 @@ class HalfScreenSheet {
       context: context,
       isScrollControlled: isScrollControlled,
       backgroundColor: Colors.transparent,
+      isDismissible: true,
+      enableDrag: false,
       transitionAnimationController: _createAnimationController(context),
       builder: (context) => _HalfScreenSheetContent(
         hasUnsavedChanges: hasUnsavedChanges,
@@ -76,14 +78,8 @@ class _HalfScreenSheetContent extends StatefulWidget {
 }
 
 class _HalfScreenSheetContentState extends State<_HalfScreenSheetContent> {
-  /// 下拉距离
-  double _dragDistance = 0;
-
-  /// 是否正在拖拽
-  bool _isDragging = false;
-
-  /// 下拉关闭阈值
-  static const double _dragThreshold = 100.0;
+  /// 是否正在显示确认对话框
+  bool _isShowingDialog = false;
 
   /// 根据屏幕宽度判断当前断点
   _Breakpoint _getBreakpoint(double width) {
@@ -108,6 +104,11 @@ class _HalfScreenSheetContentState extends State<_HalfScreenSheetContent> {
     }
   }
 
+  /// 检查是否有未保存的数据
+  bool get _hasUnsavedChanges {
+    return widget.hasUnsavedChanges?.call() ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -116,60 +117,93 @@ class _HalfScreenSheetContentState extends State<_HalfScreenSheetContent> {
     final breakpoint = _getBreakpoint(screenWidth);
     final sheetMaxWidth = _getSheetMaxWidth(breakpoint);
 
-    Widget sheetContent = GestureDetector(
-      onVerticalDragStart: _onDragStart,
-      onVerticalDragUpdate: _onDragUpdate,
-      onVerticalDragEnd: _onDragEnd,
-      child: AnimatedContainer(
-        duration: _isDragging ? Duration.zero : const Duration(milliseconds: 200),
-        transform: Matrix4.translationValues(0, _dragDistance, 0),
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.9,
-          ),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 拖拽指示条
-              _buildDragHandle(colorScheme),
+    // 构建弹窗底部内容
+    Widget sheetContent = Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.9,
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 拖拽指示条（仅作为视觉指示）
+          _buildDragHandle(colorScheme),
 
-              // 内容区域
-              Flexible(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: 24,
-                    right: 24,
-                    top: 24,
-                    bottom: 48 + bottomPadding,
-                  ),
-                  child: widget.child,
-                ),
+          // 内容区域
+          Flexible(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: 48 + bottomPadding,
               ),
-            ],
+              child: widget.child,
+            ),
           ),
-        ),
+        ],
       ),
     );
 
-    // 宽屏设备：居中并限制最大宽度
+    // 宽屏设备：限制最大宽度
     if (sheetMaxWidth != null) {
-      sheetContent = Align(
-        alignment: Alignment.bottomCenter,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: sheetMaxWidth),
-          child: sheetContent,
-        ),
+      sheetContent = ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: sheetMaxWidth),
+        child: sheetContent,
       );
     }
 
-    return sheetContent;
+    // 使用 Column 将内容推到底部，上方留空区域不拦截点击
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        // 上方可点击区域（遮罩关闭）
+        Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () async {
+              // 检查是否有未保存数据
+              if (_hasUnsavedChanges && !_isShowingDialog) {
+                _isShowingDialog = true;
+                final shouldClose = await _showDiscardDialog();
+                _isShowingDialog = false;
+                if (shouldClose && mounted) {
+                  Navigator.of(context).pop();
+                }
+              } else if (!_hasUnsavedChanges) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ),
+        // 弹窗内容
+        PopScope(
+          canPop: !_hasUnsavedChanges,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (didPop) return;
+            if (_hasUnsavedChanges && !_isShowingDialog) {
+              _isShowingDialog = true;
+              final shouldClose = await _showDiscardDialog();
+              _isShowingDialog = false;
+              if (shouldClose && mounted) {
+                Navigator.of(context).pop();
+              }
+            }
+          },
+          child: Material(
+            color: Colors.transparent,
+            child: sheetContent,
+          ),
+        ),
+      ],
+    );
   }
 
-  /// 构建拖拽指示条
+  /// 构建拖拽指示条（视觉指示）
   Widget _buildDragHandle(ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.only(top: 12, bottom: 8),
@@ -182,60 +216,6 @@ class _HalfScreenSheetContentState extends State<_HalfScreenSheetContent> {
         ),
       ),
     );
-  }
-
-  /// 开始拖拽
-  void _onDragStart(DragStartDetails details) {
-    setState(() {
-      _isDragging = true;
-    });
-  }
-
-  /// 更新拖拽
-  void _onDragUpdate(DragUpdateDetails details) {
-    setState(() {
-      _dragDistance = (_dragDistance + details.delta.dy).clamp(0.0, double.infinity);
-    });
-  }
-
-  /// 结束拖拽
-  void _onDragEnd(DragEndDetails details) {
-    setState(() {
-      _isDragging = false;
-    });
-
-    if (_dragDistance > _dragThreshold) {
-      // 超过阈值，关闭弹窗
-      _handleClose();
-    } else {
-      // 未达阈值，弹回原位
-      setState(() {
-        _dragDistance = 0;
-      });
-    }
-  }
-
-  /// 处理关闭
-  Future<void> _handleClose() async {
-    final hasChanges = widget.hasUnsavedChanges?.call() ?? false;
-
-    if (hasChanges) {
-      // 有未保存数据，显示确认对话框
-      final shouldClose = await _showDiscardDialog();
-      if (shouldClose && mounted) {
-        Navigator.of(context).pop();
-      } else {
-        // 用户取消，重置拖拽距离
-        setState(() {
-          _dragDistance = 0;
-        });
-      }
-    } else {
-      // 无未保存数据，直接关闭
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-    }
   }
 
   /// 显示放弃确认对话框
@@ -258,13 +238,5 @@ class _HalfScreenSheetContentState extends State<_HalfScreenSheetContent> {
           ),
         ) ??
         false;
-  }
-}
-
-/// 扩展方法：检测点击遮罩关闭
-extension HalfScreenSheetStateExtension on State<_HalfScreenSheetContent> {
-  /// 检查并处理关闭（供外部调用）
-  Future<void> checkAndClose() async {
-    await (this as _HalfScreenSheetContentState)._handleClose();
   }
 }

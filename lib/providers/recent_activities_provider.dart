@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNotNull;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
+import 'activity_data_change_provider.dart';
 import 'database_provider.dart';
 
 /// 最近活动查询参数
@@ -21,6 +22,9 @@ typedef RecentActivitiesQuery = ({int babyId, int limit});
 /// - 无记录时返回空列表
 final recentActivitiesProvider = FutureProvider.family<
     List<ActivityRecord>, RecentActivitiesQuery>((ref, query) async {
+  // 监听数据变化通知
+  ref.watch(activityDataChangeProvider);
+
   final db = ref.watch(databaseProvider);
   return await (db.select(db.activityRecords)
         ..where((r) => r.babyId.equals(query.babyId) & r.isDeleted.equals(false))
