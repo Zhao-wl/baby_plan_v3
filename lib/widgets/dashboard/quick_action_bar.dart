@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../database/tables/activity_records.dart';
 import '../../providers/providers.dart';
 import '../../theme/app_colors.dart';
+import 'quick_record_sheet.dart';
 
 /// 快捷操作台组件
 ///
@@ -23,7 +24,32 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
   static const _debounceDuration = Duration(milliseconds: 500);
   bool _hasShownNoBabyTip = false;
 
-  /// 防抖检查
+  /// 处理长按
+  Future<void> _handleLongPress(ActivityType activityType) async {
+    final currentBabyId = ref.read(currentBabyIdProvider);
+
+    // 检查是否有宝宝
+    if (currentBabyId == null) {
+      if (!_hasShownNoBabyTip && mounted) {
+        _hasShownNoBabyTip = true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('请先添加宝宝'),
+            duration: Duration(seconds: 2),
+          ),
+        ).closed.then((_) {
+          _hasShownNoBabyTip = false;
+        });
+      }
+      return;
+    }
+
+    // 打开快捷记录弹窗
+    await QuickRecordSheet.show(
+      context: context,
+      activityType: activityType,
+    );
+  }
   bool _shouldProcessTap() {
     final now = DateTime.now();
     if (_lastTapTime != null &&
@@ -62,8 +88,16 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
     // 根据当前状态决定行为
     if (timerState.isTiming) {
       if (timerState.activityType == activityType) {
-        // 正在计时相同活动 -> 停止
-        await ref.read(timerProvider.notifier).stop();
+        // 正在计时相同活动 -> 停止并弹出表单
+        final result = await ref.read(timerProvider.notifier).stopWithForm();
+        if (result != null && mounted) {
+          await QuickRecordSheet.show(
+            context: context,
+            activityType: result['activityType'] as ActivityType,
+            startTime: result['startTime'] as DateTime,
+            endTime: result['endTime'] as DateTime,
+          );
+        }
       } else {
         // 正在计时不同活动 -> 切换
         await ref.read(timerProvider.notifier).switchActivity(activityType);
@@ -112,6 +146,7 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
                 ? timerState.currentDuration
                 : null,
             onPressed: () => _handleTap(ActivityType.eat),
+            onLongPress: () => _handleLongPress(ActivityType.eat),
           ),
           _ActionButton(
             label: '玩耍',
@@ -125,6 +160,7 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
                 ? timerState.currentDuration
                 : null,
             onPressed: () => _handleTap(ActivityType.activity),
+            onLongPress: () => _handleLongPress(ActivityType.activity),
           ),
           _ActionButton(
             label: '睡眠',
@@ -138,6 +174,7 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
                 ? timerState.currentDuration
                 : null,
             onPressed: () => _handleTap(ActivityType.sleep),
+            onLongPress: () => _handleLongPress(ActivityType.sleep),
           ),
           _ActionButton(
             label: '便便',
@@ -151,6 +188,7 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
                 ? timerState.currentDuration
                 : null,
             onPressed: () => _handleTap(ActivityType.poop),
+            onLongPress: () => _handleLongPress(ActivityType.poop),
           ),
         ],
       ),
@@ -169,6 +207,7 @@ class _ActionButton extends StatelessWidget {
   final bool isEnabled;
   final Duration? duration;
   final VoidCallback onPressed;
+  final VoidCallback? onLongPress;
 
   const _ActionButton({
     required this.label,
@@ -180,6 +219,7 @@ class _ActionButton extends StatelessWidget {
     this.isEnabled = true,
     this.duration,
     required this.onPressed,
+    this.onLongPress,
   });
 
   String _formatDuration(Duration d) {
@@ -202,6 +242,7 @@ class _ActionButton extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

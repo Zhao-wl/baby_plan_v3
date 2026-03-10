@@ -245,6 +245,36 @@ class TimerNotifier extends Notifier<TimerState> {
     await _persistState();
   }
 
+  /// 停止计时并返回时间信息（不自动保存）
+  ///
+  /// 用于需要弹出表单补充详情的场景
+  /// 返回包含 startTime, endTime, duration 的 Map，如果失败返回 null
+  Future<Map<String, dynamic>?> stopWithForm() async {
+    if (!state.isTiming) {
+      return null;
+    }
+
+    // 计算时长
+    final duration = state.currentDuration;
+
+    // 时长少于1秒不处理
+    if (duration.inSeconds < 1) {
+      await _clearState();
+      return null;
+    }
+
+    final endTime = DateTime.now();
+    final result = {
+      'activityType': state.activityType,
+      'startTime': state.startTime!,
+      'endTime': endTime,
+      'duration': duration,
+    };
+
+    await _clearState();
+    return result;
+  }
+
   /// 取消计时（不保存记录）
   Future<void> cancel() async {
     await _clearState();
