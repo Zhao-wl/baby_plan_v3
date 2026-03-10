@@ -8,6 +8,7 @@
 export 'activity_data_change_provider.dart';
 export 'auth_provider.dart';
 export 'database_provider.dart';
+export 'device_service_provider.dart';
 export 'settings_provider.dart';
 export 'babies_provider.dart';
 export 'current_baby_provider.dart';

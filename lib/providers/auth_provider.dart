@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
 import 'database_provider.dart';
+import 'device_service_provider.dart';
 
 /// 认证状态数据类
 class AuthState {
@@ -70,13 +71,34 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final db = ref.read(databaseProvider);
 
-      // 查询本地用户（排除已删除）
+      // 先获取设备标识
+      final deviceId = await ref.read(deviceServiceProvider).getDeviceId();
+
+      // 先根据 deviceId 查询现有游客用户
+      final existingGuest = await (db.select(db.users)
+            ..where((u) =>
+                u.deviceId.equals(deviceId) &
+                u.isGuest.equals(true) &
+                u.isDeleted.equals(false)))
+          .getSingleOrNull();
+
+      if (existingGuest != null) {
+        // 恢复现有游客账号
+        state = AuthState(
+          currentUser: existingGuest,
+          isGuest: true,
+          isLoading: false,
+        );
+        return;
+      }
+
+      // 查询本地正式用户（排除已删除）
       final existingUsers = await (db.select(db.users)
-            ..where((u) => u.isDeleted.equals(false)))
+            ..where((u) => u.isDeleted.equals(false) & u.isGuest.equals(false)))
           .get();
 
       if (existingUsers.isNotEmpty) {
-        // 使用现有用户
+        // 使用现有正式用户
         final user = existingUsers.first;
         state = AuthState(
           currentUser: user,
@@ -84,8 +106,8 @@ class AuthNotifier extends Notifier<AuthState> {
           isLoading: false,
         );
       } else {
-        // 创建游客用户
-        final guestUser = await _createGuestUser(db);
+        // 创建新的游客用户，关联 deviceId
+        final guestUser = await _createGuestUser(db, deviceId);
         state = AuthState(
           currentUser: guestUser,
           isGuest: true,
@@ -101,11 +123,12 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// 创建游客用户
-  Future<User> _createGuestUser(AppDatabase db) async {
+  Future<User> _createGuestUser(AppDatabase db, String deviceId) async {
     final id = await db.into(db.users).insert(
           UsersCompanion.insert(
             nickname: '游客',
             isGuest: const Value(true),
+            deviceId: Value(deviceId),
           ),
         );
 

@@ -41,7 +41,7 @@ void main() {
 
       // 无开始时间
       expect(
-        TimerState(activityType: ActivityType.eat, startTime: null).isTiming,
+        const TimerState(activityType: ActivityType.eat, startTime: null).isTiming,
         false,
       );
 

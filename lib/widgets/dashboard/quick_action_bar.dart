@@ -232,8 +232,8 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final showDuration = isActive && duration != null && !isPaused;
     // 禁用状态使用更深的灰色，确保与白色背景有明显对比
-    final disabledColor = const Color(0xFF64748B); // slate-500
-    final disabledLightColor = const Color(0xFFE2E8F0); // slate-200
+    const disabledColor = Color(0xFF64748B); // slate-500
+    const disabledLightColor = Color(0xFFE2E8F0); // slate-200
 
     final effectiveColor = isEnabled ? color : disabledColor;
     final effectiveLightColor = isEnabled ? lightColor : disabledLightColor;

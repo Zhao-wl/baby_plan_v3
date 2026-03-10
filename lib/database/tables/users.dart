@@ -40,4 +40,7 @@ class Users extends Table {
 
   /// 是否为游客用户
   BoolColumn get isGuest => boolean().withDefault(const Constant(false))();
+
+  /// 设备标识（用于关联游客账号）
+  TextColumn get deviceId => text().nullable().withLength(max: 36)();
 }

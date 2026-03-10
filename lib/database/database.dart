@@ -17,7 +17,7 @@ part 'database.g.dart';
 /// 应用数据库
 ///
 /// 使用 Drift ORM 管理 SQLite 数据库。
-/// Schema 版本 2，包含完整的业务数据模型。
+/// Schema 版本 4，包含完整的业务数据模型。
 @DriftDatabase(
   tables: [
     TestRecords,
@@ -36,7 +36,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -58,6 +58,10 @@ class AppDatabase extends _$AppDatabase {
         if (from < 3) {
           // 从 v2 升级到 v3：添加 isGuest 字段
           await m.addColumn(users, users.isGuest);
+        }
+        if (from < 4) {
+          // 从 v3 升级到 v4：添加 device_id 字段
+          await m.addColumn(users, users.deviceId);
         }
       },
     );

@@ -55,7 +55,11 @@
       "Bash(taskkill /F /IM chrome.exe 2>/dev/null; sleep 2; echo \"Chrome closed\")",
       "mcp__chrome-devtools__emulate",
       "mcp__dart__list_running_apps",
-      "Bash(dart analyze:*)"
+      "Bash(dart analyze:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(git branch:*)",
+      "Bash(git worktree:*)"
     ]
   }
 }
