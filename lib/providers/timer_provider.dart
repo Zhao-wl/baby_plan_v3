@@ -100,60 +100,97 @@ class TimerState {
 /// - 开始、停止、暂停、继续、取消计时
 /// - 切换活动类型
 /// - 状态持久化
-class TimerNotifier extends Notifier<TimerState> {
+///
+/// 初始化时优先从数据库恢复进行中活动状态，再用 SharedPreferences 补充暂停状态。
+class TimerNotifier extends AsyncNotifier<TimerState> {
   @override
-  TimerState build() {
-    // 从 SharedPreferences 恢复计时状态
-    _restoreTimerState();
-    return const TimerState();
+  Future<TimerState> build() async {
+    // 获取当前宝宝 ID
+    final babyId = ref.read(currentBabyIdProvider);
+    if (babyId == null) {
+      return const TimerState();
+    }
+
+    // 1. 从数据库查询进行中活动
+    final db = ref.read(databaseProvider);
+    final ongoingActivity = await db.getOngoingActivity(babyId);
+
+    if (ongoingActivity == null) {
+      // 无进行中活动，清除可能存在的旧状态
+      await _clearPersistedState();
+      return const TimerState();
+    }
+
+    // 2. 从 SharedPreferences 获取暂停状态（如果有）
+    final pauseState = _loadPauseStateFromPrefs();
+
+    // 3. 构建并返回状态
+    return TimerState(
+      activityType: ActivityType.values.firstWhere(
+        (t) => t.value == ongoingActivity.type,
+        orElse: () => ActivityType.eat,
+      ),
+      startTime: ongoingActivity.startTime,
+      isPaused: pauseState.isPaused,
+      pausedDuration: pauseState.pausedDuration,
+      pausedAt: pauseState.pausedAt,
+      currentRecordId: ongoingActivity.id,
+    );
   }
 
-  /// 从持久化存储恢复计时状态
-  void _restoreTimerState() {
+  /// 从 SharedPreferences 加载暂停状态
+  _PauseState _loadPauseStateFromPrefs() {
     try {
       final storage = ref.read(timerStorageServiceProvider);
-      if (storage == null) return;
+      if (storage == null) return const _PauseState();
 
       final savedState = storage.loadTimerState();
+      if (savedState == null) return const _PauseState();
 
-      if (savedState != null) {
-        state = TimerState(
-          activityType: savedState['activityType'] as ActivityType,
-          startTime: savedState['startTime'] as DateTime,
-          isPaused: savedState['isPaused'] as bool,
-          pausedDuration: savedState['pausedDuration'] as Duration,
-          pausedAt: savedState['pausedAt'] as DateTime?,
-          currentRecordId: savedState['currentRecordId'] as int?,
-        );
-      }
+      return _PauseState(
+        isPaused: savedState['isPaused'] as bool? ?? false,
+        pausedDuration: savedState['pausedDuration'] as Duration? ?? Duration.zero,
+        pausedAt: savedState['pausedAt'] as DateTime?,
+      );
     } catch (e) {
-      // 恢复失败时保持初始状态
-      state = const TimerState();
+      return const _PauseState();
     }
   }
+
+  /// 获取当前状态值（安全方式）
+  TimerState? get _currentState => switch (state) {
+    AsyncData(:final value) => value,
+    _ => null,
+  };
 
   /// 持久化当前状态
   Future<void> _persistState() async {
     final storage = ref.read(timerStorageServiceProvider);
     if (storage == null) return;
 
+    final currentState = _currentState;
     await storage.saveTimerState(
-      activityType: state.activityType,
-      startTime: state.startTime,
-      isPaused: state.isPaused,
-      pausedDuration: state.pausedDuration,
-      pausedAt: state.pausedAt,
-      currentRecordId: state.currentRecordId,
+      activityType: currentState?.activityType,
+      startTime: currentState?.startTime,
+      isPaused: currentState?.isPaused ?? false,
+      pausedDuration: currentState?.pausedDuration ?? Duration.zero,
+      pausedAt: currentState?.pausedAt,
+      currentRecordId: currentState?.currentRecordId,
     );
   }
 
-  /// 清除状态和持久化数据
-  Future<void> _clearState() async {
-    state = const TimerState();
+  /// 清除持久化数据
+  Future<void> _clearPersistedState() async {
     final storage = ref.read(timerStorageServiceProvider);
     if (storage == null) return;
 
     await storage.clearTimerState();
+  }
+
+  /// 清除状态和持久化数据
+  Future<void> _clearState() async {
+    state = const AsyncData(TimerState());
+    await _clearPersistedState();
   }
 
   /// 获取当前宝宝 ID
@@ -172,29 +209,23 @@ class TimerNotifier extends Notifier<TimerState> {
 
     final now = DateTime.now();
 
-    // 创建"进行中"的活动记录（无结束时间）
+    // 创建"进行中"的活动记录（status=0）
     final db = ref.read(databaseProvider);
-    final recordId = await db.into(db.activityRecords).insert(
-          ActivityRecordsCompanion.insert(
-            babyId: babyId,
-            type: activityType.value,
-            startTime: now,
-            endTime: const Value.absent(), // 无结束时间，表示进行中
-            durationSeconds: const Value.absent(),
-            isVerified: const Value(false),
-          ),
-        );
+    final recordId = await db.createOngoingActivity(
+      babyId: babyId,
+      type: activityType.value,
+    );
 
     // 触发数据变化通知
     ref.read(activityDataChangeProvider.notifier).state++;
 
-    state = TimerState(
+    state = AsyncData(TimerState(
       activityType: activityType,
       startTime: now,
       isPaused: false,
       pausedDuration: Duration.zero,
       currentRecordId: recordId,
-    );
+    ));
 
     await _persistState();
     return true;
@@ -204,7 +235,8 @@ class TimerNotifier extends Notifier<TimerState> {
   ///
   /// 返回活动记录 ID，如果失败返回 null
   Future<int?> stop() async {
-    if (!state.isTiming) {
+    final currentState = _currentState;
+    if (currentState == null || !currentState.isTiming) {
       return null;
     }
 
@@ -215,15 +247,15 @@ class TimerNotifier extends Notifier<TimerState> {
     }
 
     // 计算时长
-    final duration = state.currentDuration;
+    final duration = currentState.currentDuration;
 
     // 时长少于1秒不保存，删除草稿记录
     if (duration.inSeconds < 1) {
       // 删除草稿记录
-      if (state.currentRecordId != null) {
+      if (currentState.currentRecordId != null) {
         final db = ref.read(databaseProvider);
         await (db.delete(db.activityRecords)
-          ..where((t) => t.id.equals(state.currentRecordId!)))
+          ..where((t) => t.id.equals(currentState.currentRecordId!)))
             .go();
         ref.read(activityDataChangeProvider.notifier).notify();
       }
@@ -235,17 +267,19 @@ class TimerNotifier extends Notifier<TimerState> {
     final db = ref.read(databaseProvider);
     final endTime = DateTime.now();
 
-    if (state.currentRecordId != null) {
+    if (currentState.currentRecordId != null) {
       // 更新现有记录
       final existing = await (db.select(db.activityRecords)
-        ..where((t) => t.id.equals(state.currentRecordId!)))
+        ..where((t) => t.id.equals(currentState.currentRecordId!)))
           .getSingleOrNull();
       if (existing != null) {
-        await db.update(db.activityRecords).replace(
-          existing.copyWith(
+        await (db.update(db.activityRecords)).write(
+          ActivityRecordsCompanion(
+            id: Value(existing.id),
             endTime: Value(endTime),
             durationSeconds: Value(duration.inSeconds),
-            syncStatus: 1, // 标记为待上传
+            status: const Value(1), // 已完成
+            syncStatus: const Value(1), // 标记为待上传
           ),
         );
       }
@@ -254,8 +288,8 @@ class TimerNotifier extends Notifier<TimerState> {
       await db.into(db.activityRecords).insert(
         ActivityRecordsCompanion.insert(
           babyId: babyId,
-          type: state.activityType!.value,
-          startTime: state.startTime!,
+          type: currentState.activityType!.value,
+          startTime: currentState.startTime!,
           endTime: Value(endTime),
           durationSeconds: Value(duration.inSeconds),
         ),
@@ -265,40 +299,42 @@ class TimerNotifier extends Notifier<TimerState> {
     // 触发数据变化通知
     ref.read(activityDataChangeProvider.notifier).state++;
 
-    final recordId = state.currentRecordId;
+    final recordId = currentState.currentRecordId;
     await _clearState();
     return recordId;
   }
 
   /// 暂停计时
   Future<void> pause() async {
-    if (!state.isTiming || state.isPaused) {
+    final currentState = _currentState;
+    if (currentState == null || !currentState.isTiming || currentState.isPaused) {
       return;
     }
 
-    state = state.copyWith(
+    state = AsyncData(currentState.copyWith(
       isPaused: true,
       pausedAt: DateTime.now(),
-    );
+    ));
 
     await _persistState();
   }
 
   /// 继续计时
   Future<void> resume() async {
-    if (!state.isTiming || !state.isPaused) {
+    final currentState = _currentState;
+    if (currentState == null || !currentState.isTiming || !currentState.isPaused) {
       return;
     }
 
     // 计算本次暂停时长
-    final pausedAt = state.pausedAt ?? DateTime.now();
+    final pausedAt = currentState.pausedAt ?? DateTime.now();
     final thisPauseDuration = DateTime.now().difference(pausedAt);
 
-    state = state.copyWith(
+    state = AsyncData(currentState.copyWith(
       isPaused: false,
-      pausedDuration: state.pausedDuration + thisPauseDuration,
+      pausedDuration: currentState.pausedDuration + thisPauseDuration,
       clearPausedAt: true,
-    );
+    ));
 
     await _persistState();
   }
@@ -308,19 +344,20 @@ class TimerNotifier extends Notifier<TimerState> {
   /// 用于需要弹出表单补充详情的场景
   /// 返回包含 startTime, endTime, duration, recordId 的 Map，如果失败返回 null
   Future<Map<String, dynamic>?> stopWithForm() async {
-    if (!state.isTiming) {
+    final currentState = _currentState;
+    if (currentState == null || !currentState.isTiming) {
       return null;
     }
 
     // 计算时长
-    final duration = state.currentDuration;
+    final duration = currentState.currentDuration;
 
     // 时长少于1秒不处理，删除草稿记录
     if (duration.inSeconds < 1) {
-      if (state.currentRecordId != null) {
+      if (currentState.currentRecordId != null) {
         final db = ref.read(databaseProvider);
         await (db.delete(db.activityRecords)
-          ..where((t) => t.id.equals(state.currentRecordId!)))
+          ..where((t) => t.id.equals(currentState.currentRecordId!)))
             .go();
         ref.read(activityDataChangeProvider.notifier).notify();
       }
@@ -330,11 +367,11 @@ class TimerNotifier extends Notifier<TimerState> {
 
     final endTime = DateTime.now();
     final result = {
-      'activityType': state.activityType,
-      'startTime': state.startTime!,
+      'activityType': currentState.activityType,
+      'startTime': currentState.startTime!,
       'endTime': endTime,
       'duration': duration,
-      'recordId': state.currentRecordId,
+      'recordId': currentState.currentRecordId,
     };
 
     // 清除状态但不删除记录，因为用户会在表单中更新它
@@ -344,12 +381,15 @@ class TimerNotifier extends Notifier<TimerState> {
 
   /// 取消计时（不保存记录）
   Future<void> cancel() async {
+    final currentState = _currentState;
+    if (currentState == null) return;
+
     // 删除草稿记录
-    if (state.currentRecordId != null) {
+    if (currentState.currentRecordId != null) {
       try {
         final db = ref.read(databaseProvider);
         await (db.delete(db.activityRecords)
-          ..where((t) => t.id.equals(state.currentRecordId!)))
+          ..where((t) => t.id.equals(currentState.currentRecordId!)))
             .go();
         ref.read(activityDataChangeProvider.notifier).notify();
       } catch (e) {
@@ -364,13 +404,15 @@ class TimerNotifier extends Notifier<TimerState> {
   /// 自动保存当前活动并开始新活动
   /// 返回新活动记录 ID，如果失败返回 null
   Future<int?> switchActivity(ActivityType newActivityType) async {
+    final currentState = _currentState;
+
     // 如果当前正在计时相同活动，则停止
-    if (state.activityType == newActivityType) {
+    if (currentState?.activityType == newActivityType) {
       return await stop();
     }
 
     // 如果当前有计时，先停止并保存
-    if (state.isTiming) {
+    if (currentState != null && currentState.isTiming) {
       await stop();
     }
 
@@ -380,7 +422,20 @@ class TimerNotifier extends Notifier<TimerState> {
   }
 }
 
+/// 暂停状态（内部使用）
+class _PauseState {
+  final bool isPaused;
+  final Duration pausedDuration;
+  final DateTime? pausedAt;
+
+  const _PauseState({
+    this.isPaused = false,
+    this.pausedDuration = Duration.zero,
+    this.pausedAt,
+  });
+}
+
 /// 计时器 Provider
-final timerProvider = NotifierProvider<TimerNotifier, TimerState>(() {
+final timerProvider = AsyncNotifierProvider<TimerNotifier, TimerState>(() {
   return TimerNotifier();
 });

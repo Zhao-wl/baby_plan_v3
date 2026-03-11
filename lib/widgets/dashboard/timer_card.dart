@@ -109,70 +109,116 @@ class _TimerCardState extends ConsumerState<TimerCard>
   void _startTimer() {
     _updateTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
-        final timerState = ref.read(timerProvider);
-        if (timerState.isTiming && !timerState.isPaused) {
-          setState(() {
-            _displayDuration = timerState.currentDuration;
-          });
-        }
+        final timerAsync = ref.read(timerProvider);
+        timerAsync.when(
+          data: (state) {
+            if (state.isTiming && !state.isPaused) {
+              setState(() {
+                _displayDuration = state.currentDuration;
+              });
+            }
+          },
+          loading: () {},
+          error: (_, __) {},
+        );
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final timerState = ref.watch(timerProvider);
+    final timerAsync = ref.watch(timerProvider);
     final screenHeight = MediaQuery.of(context).size.height;
     final cardHeight = screenHeight * 0.28; // 28% 屏幕高度
 
-    // 根据计时状态决定是否显示呼吸动画
-    if (!timerState.isTiming || timerState.isPaused) {
-      _breathController.stop();
-    } else {
-      _breathController.repeat(reverse: true);
-    }
+    return timerAsync.when(
+      data: (timerState) {
+        // 根据计时状态决定是否显示呼吸动画
+        if (!timerState.isTiming || timerState.isPaused) {
+          _breathController.stop();
+        } else {
+          _breathController.repeat(reverse: true);
+        }
 
-    // 获取活动配置
-    final activityConfig = timerState.activityType != null
-        ? _getActivityConfig(timerState.activityType!)
-        : null;
+        // 获取活动配置
+        final activityConfig = timerState.activityType != null
+            ? _getActivityConfig(timerState.activityType!)
+            : null;
 
-    return Container(
-      width: double.infinity,
-      height: cardHeight,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: activityConfig != null
-              ? [
-                  activityConfig.lightColor,
-                  activityConfig.lightColor.withValues(alpha: 0.7),
-                ]
-              : [
-                  const Color(0xFFE3F2FD), // blue-50
-                  const Color(0xFFE8EAF6), // indigo-50
-                ],
+        return Container(
+          width: double.infinity,
+          height: cardHeight,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: activityConfig != null
+                  ? [
+                      activityConfig.lightColor,
+                      activityConfig.lightColor.withValues(alpha: 0.7),
+                    ]
+                  : [
+                      const Color(0xFFE3F2FD), // blue-50
+                      const Color(0xFFE8EAF6), // indigo-50
+                    ],
+            ),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: activityConfig?.color.withValues(alpha: 0.3) ??
+                  const Color(0xFFBBDEFB).withValues(alpha: 0.5),
+              width: 1,
+            ),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // 呼吸波纹动效（仅在计时时显示）
+              if (timerState.isTiming && !timerState.isPaused)
+                _buildBreathingRipples(cardHeight, activityConfig!.color),
+
+              // 内容区域
+              timerState.isTiming
+                  ? _buildTimingContent(context, timerState, activityConfig!)
+                  : _buildIdleContent(context),
+            ],
+          ),
+        );
+      },
+      loading: () => Container(
+        width: double.infinity,
+        height: cardHeight,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFE3F2FD), // blue-50
+              Color(0xFFE8EAF6), // indigo-50
+            ],
+          ),
+          borderRadius: BorderRadius.circular(32),
         ),
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(
-          color: activityConfig?.color.withValues(alpha: 0.3) ??
-              const Color(0xFFBBDEFB).withValues(alpha: 0.5),
-          width: 1,
+        child: const Center(
+          child: CircularProgressIndicator(),
         ),
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // 呼吸波纹动效（仅在计时时显示）
-          if (timerState.isTiming && !timerState.isPaused)
-            _buildBreathingRipples(cardHeight, activityConfig!.color),
-
-          // 内容区域
-          timerState.isTiming
-              ? _buildTimingContent(context, timerState, activityConfig!)
-              : _buildIdleContent(context),
-        ],
+      error: (error, stack) => Container(
+        width: double.infinity,
+        height: cardHeight,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFE3F2FD), // blue-50
+              Color(0xFFE8EAF6), // indigo-50
+            ],
+          ),
+          borderRadius: BorderRadius.circular(32),
+        ),
+        child: Center(
+          child: Text('加载失败: $error'),
+        ),
       ),
     );
   }

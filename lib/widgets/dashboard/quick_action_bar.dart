@@ -52,8 +52,12 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
     }
 
     // 检查是否已有进行中活动
-    final timerState = ref.read(timerProvider);
-    if (timerState.isTiming) {
+    final timerAsync = ref.read(timerProvider);
+    final timerState = switch (timerAsync) {
+      AsyncData(:final value) => value,
+      _ => null,
+    };
+    if (timerState != null && timerState.isTiming) {
       // 如果是相同活动类型，停止并弹出表单完成记录
       if (timerState.activityType == activityType) {
         final result = await ref.read(timerProvider.notifier).stopWithForm();
@@ -79,8 +83,12 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
     }
 
     // 获取刚创建的记录 ID
-    final newTimerState = ref.read(timerProvider);
-    final recordId = newTimerState.currentRecordId;
+    final newTimerAsync = ref.read(timerProvider);
+    final newTimerState = switch (newTimerAsync) {
+      AsyncData(:final value) => value,
+      _ => null,
+    };
+    final recordId = newTimerState?.currentRecordId;
 
     // 弹出表单让用户编辑详情
     if (mounted && recordId != null) {
@@ -125,7 +133,11 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
   Future<void> _handleTap(ActivityType activityType) async {
     if (!_shouldProcessTap()) return;
 
-    final timerState = ref.read(timerProvider);
+    final timerAsync = ref.read(timerProvider);
+    final timerState = switch (timerAsync) {
+      AsyncData(:final value) => value,
+      _ => null,
+    };
     final currentBabyId = ref.read(currentBabyIdProvider);
 
     // 检查是否有宝宝
@@ -147,7 +159,7 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
     }
 
     // 根据当前状态决定行为
-    if (timerState.isTiming) {
+    if (timerState != null && timerState.isTiming) {
       if (timerState.activityType == activityType) {
         // 正在计时相同活动 -> 停止并弹出表单
         final result = await ref.read(timerProvider.notifier).stopWithForm();
@@ -171,8 +183,19 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
 
   @override
   Widget build(BuildContext context) {
-    final timerState = ref.watch(timerProvider);
+    final timerAsync = ref.watch(timerProvider);
     final currentBabyId = ref.watch(currentBabyIdProvider);
+
+    // 从 AsyncValue 中提取 TimerState，如果加载中则使用默认状态
+    final TimerState timerState;
+    switch (timerAsync) {
+      case AsyncData(:final value):
+        timerState = value;
+      case AsyncError():
+        timerState = const TimerState();
+      case AsyncLoading():
+        timerState = const TimerState();
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

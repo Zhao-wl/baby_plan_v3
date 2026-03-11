@@ -21,7 +21,11 @@ class BabyInfoCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentBabyState = ref.watch(currentBabyProvider);
     final baby = currentBabyState.baby;
-    final timerState = ref.watch(timerProvider);
+    final timerAsync = ref.watch(timerProvider);
+    final timerState = switch (timerAsync) {
+      AsyncData(:final value) => value,
+      _ => null,
+    };
 
     // 加载中状态
     if (currentBabyState.isLoading) {
@@ -99,7 +103,7 @@ class BabyInfoCard extends ConsumerWidget {
                       ),
                     ),
                     // 计时状态指示器
-                    if (timerState.isTiming) ...[
+                    if (timerState != null && timerState.isTiming) ...[
                       const SizedBox(width: 8),
                       _buildTimerIndicator(timerState),
                     ],
