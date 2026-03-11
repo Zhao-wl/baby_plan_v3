@@ -102,11 +102,27 @@ class TimerState {
 /// - 状态持久化
 ///
 /// 初始化时优先从数据库恢复进行中活动状态，再用 SharedPreferences 补充暂停状态。
+/// 使用 ref.listen 监听 currentBabyIdProvider 变化，确保页面刷新后正确恢复状态。
 class TimerNotifier extends AsyncNotifier<TimerState> {
   @override
   Future<TimerState> build() async {
+    // 监听宝宝 ID 变化，当宝宝切换或从 null 变为有效值时重新加载计时器状态
+    ref.listen<int?>(currentBabyIdProvider, (previous, next) {
+      if (previous != next) {
+        // 宝宝 ID 变化时重新加载计时器状态
+        _reloadTimerState(next);
+      }
+    });
+
     // 获取当前宝宝 ID
     final babyId = ref.read(currentBabyIdProvider);
+    return _loadTimerStateFromDb(babyId);
+  }
+
+  /// 从数据库加载计时器状态
+  ///
+  /// 如果 babyId 为 null 或没有进行中活动，返回空的 TimerState。
+  Future<TimerState> _loadTimerStateFromDb(int? babyId) async {
     if (babyId == null) {
       return const TimerState();
     }
@@ -136,6 +152,12 @@ class TimerNotifier extends AsyncNotifier<TimerState> {
       pausedAt: pauseState.pausedAt,
       currentRecordId: ongoingActivity.id,
     );
+  }
+
+  /// 重新加载计时器状态（当宝宝 ID 变化时调用）
+  void _reloadTimerState(int? babyId) async {
+    final newState = await _loadTimerStateFromDb(babyId);
+    state = AsyncData(newState);
   }
 
   /// 从 SharedPreferences 加载暂停状态
