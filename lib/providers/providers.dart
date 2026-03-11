@@ -23,3 +23,4 @@ export 'ongoing_activity_provider.dart';
 export 'recent_activities_provider.dart';
 export 'timer_provider.dart';
 export 'timer_storage_provider.dart';
+export 'vaccine_provider.dart';

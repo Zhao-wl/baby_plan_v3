@@ -1,4 +1,6 @@
 import 'package:drift/drift.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 
 import 'connection.dart';
 import 'tables/test_table.dart';
@@ -262,5 +264,167 @@ class AppDatabase extends _$AppDatabase {
   Future<bool> hasOngoingActivity(int babyId) async {
     final activity = await getOngoingActivity(babyId);
     return activity != null;
+  }
+
+  // ========== 疫苗库数据管理 ==========
+
+  /// 从 JSON 文件加载疫苗库数据到数据库
+  ///
+  /// 仅在数据库为空或版本更新时执行加载。
+  /// 返回是否执行了加载操作。
+  Future<bool> loadVaccineLibraryFromJson() async {
+    try {
+      // 检查数据库是否已有数据
+      final existingCount = await (select(vaccineLibrary).get()).then((list) => list.length);
+
+      // 读取 JSON 文件
+      final jsonString = await rootBundle.loadString('assets/data/vaccine_library.json');
+      final jsonData = json.decode(jsonString) as Map<String, dynamic>;
+      final version = jsonData['version'] as int;
+      final vaccines = jsonData['vaccines'] as List<dynamic>;
+
+      // 检查是否需要更新（版本号更高或数据库为空）
+      if (existingCount > 0) {
+        // 获取当前数据库中的版本号
+        final existingRecords = await select(vaccineLibrary).get();
+        final currentVersion = existingRecords.first.dataVersion;
+
+        if (currentVersion >= version) {
+          // 数据已是最新，无需加载
+          return false;
+        }
+
+        // 版本更新，先清空旧数据
+        await delete(vaccineLibrary).go();
+      }
+
+      // 批量插入新数据
+      await batch((batch) {
+        for (final vaccineJson in vaccines) {
+          batch.insert(
+            vaccineLibrary,
+            VaccineLibraryCompanion.insert(
+              name: vaccineJson['name'] as String,
+              fullName: vaccineJson['fullName'] as String,
+              code: vaccineJson['code'] as String,
+              doseIndex: vaccineJson['doseIndex'] as int,
+              totalDoses: vaccineJson['totalDoses'] as int,
+              recommendedAgeDays: vaccineJson['recommendedAgeDays'] as int,
+              minIntervalDays: Value(vaccineJson['minIntervalDays'] as int?),
+              ageDescription: vaccineJson['ageDescription'] as String,
+              vaccineType: Value(vaccineJson['vaccineType'] as int? ?? 0),
+              isCombined: Value(vaccineJson['isCombined'] as bool? ?? false),
+              description: Value(vaccineJson['description'] as String?),
+              contraindications: Value(vaccineJson['contraindications'] as String?),
+              sideEffects: Value(vaccineJson['sideEffects'] as String?),
+              dataVersion: Value(version),
+            ),
+          );
+        }
+      });
+
+      return true;
+    } catch (e) {
+      // 加载失败，记录错误但不抛出异常
+      print('加载疫苗库数据失败: $e');
+      return false;
+    }
+  }
+
+  /// 获取所有疫苗库数据（按推荐年龄排序）
+  Future<List<VaccineLibraryData>> getAllVaccines() async {
+    return (select(vaccineLibrary)
+          ..orderBy([(v) => OrderingTerm.asc(v.recommendedAgeDays)]))
+        .get();
+  }
+
+  /// 获取指定月龄分组的疫苗列表
+  Future<List<VaccineLibraryData>> getVaccinesByAgeGroup(String ageDescription) async {
+    return (select(vaccineLibrary)
+          ..where((v) => v.ageDescription.equals(ageDescription))
+          ..orderBy([(v) => OrderingTerm.asc(v.doseIndex)]))
+        .get();
+  }
+
+  /// 获取所有月龄分组（去重，按推荐年龄排序）
+  Future<List<String>> getAgeGroups() async {
+    final vaccines = await select(vaccineLibrary).get();
+
+    // 使用 Map 保存每个 ageGroup 的最小 recommendedAgeDays
+    final ageGroupMinDays = <String, int>{};
+    for (final vaccine in vaccines) {
+      final existing = ageGroupMinDays[vaccine.ageDescription];
+      if (existing == null || vaccine.recommendedAgeDays < existing) {
+        ageGroupMinDays[vaccine.ageDescription] = vaccine.recommendedAgeDays;
+      }
+    }
+
+    // 按 recommendedAgeDays 排序
+    final sortedAgeGroups = ageGroupMinDays.keys.toList()
+      ..sort((a, b) => ageGroupMinDays[a]!.compareTo(ageGroupMinDays[b]!));
+
+    return sortedAgeGroups;
+  }
+
+  // ========== 接种记录管理 ==========
+
+  /// 获取宝宝的接种记录（关联疫苗库信息）
+  Future<List<VaccineRecord>> getVaccineRecordsByBaby(int babyId) async {
+    return (select(vaccineRecords)
+          ..where((r) => r.babyId.equals(babyId))
+          ..where((r) => r.isDeleted.equals(false))
+          ..orderBy([(r) => OrderingTerm.desc(r.actualDate)]))
+        .get();
+  }
+
+  /// 获取宝宝指定疫苗的接种记录
+  Future<VaccineRecord?> getVaccineRecord(int babyId, int vaccineLibraryId) async {
+    return (select(vaccineRecords)
+          ..where((r) => r.babyId.equals(babyId))
+          ..where((r) => r.vaccineLibraryId.equals(vaccineLibraryId))
+          ..where((r) => r.isDeleted.equals(false))
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  /// 创建接种记录
+  Future<int> createVaccineRecord({
+    required int babyId,
+    required int vaccineLibraryId,
+    required DateTime actualDate,
+    String? batchNumber,
+    String? manufacturer,
+    String? hospital,
+    int? injectionSite,
+    int? reactionLevel,
+    String? reactionDetail,
+    String? notes,
+  }) async {
+    return await into(vaccineRecords).insert(
+      VaccineRecordsCompanion.insert(
+        babyId: babyId,
+        vaccineLibraryId: vaccineLibraryId,
+        actualDate: actualDate,
+        batchNumber: Value(batchNumber),
+        manufacturer: Value(manufacturer),
+        hospital: Value(hospital),
+        injectionSite: Value(injectionSite),
+        reactionLevel: Value(reactionLevel),
+        reactionDetail: Value(reactionDetail),
+        notes: Value(notes),
+        status: const Value(1), // 已接种
+      ),
+    );
+  }
+
+  /// 更新接种记录
+  Future<void> updateVaccineRecord(VaccineRecord record) async {
+    await update(vaccineRecords).replace(
+      record.copyWith(
+        updatedAt: DateTime.now(),
+        syncStatus: 1, // 标记为待上传
+        version: record.version + 1,
+      ),
+    );
   }
 }
