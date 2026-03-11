@@ -60,7 +60,7 @@
       "Bash(git merge:*)",
       "Bash(git branch:*)",
       "Bash(git worktree:*)",
-      "Bash(cd \"C:/Projects/baby_plan_v3/.claude/worktrees/fix-home-countdown\" && mkdir -p openspec/changes/archive && ls openspec/changes/archive/ 2>/dev/null || echo \"Archive directory ready\")",
+      "Bash(cd :*)",
       "Bash(git checkout:*)",
       "Bash(git fetch:*)"
     ]
