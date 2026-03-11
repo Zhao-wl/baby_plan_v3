@@ -1,7 +1,8 @@
 # stats-provider Specification
 
 ## Purpose
-TBD - created by archiving change riverpod-architecture. Update Purpose after archive.
+statsProvider 提供宝宝活动数据的聚合统计功能，支持日/周/月周期查询，输出图表数据格式，用于统计页面可视化展示。
+
 ## Requirements
 ### Requirement: 统计数据聚合
 
@@ -54,4 +55,40 @@ statsProvider SHALL 依赖 currentBabyProvider 获取当前宝宝 ID。
 #### Scenario: 当前宝宝变更时刷新
 - **WHEN** 当前宝宝切换
 - **THEN** statsProvider 自动刷新为新宝宝的统计
+
+### Requirement: 支持图表数据格式输出
+
+statsProvider SHALL 提供图表所需的时间序列数据格式，用于睡眠柱状图和生长曲线图。
+
+#### Scenario: 获取周睡眠分布数据
+- **WHEN** 请求周视图睡眠图表数据
+- **THEN** 返回每日睡眠数据的列表，每项包含日期、夜间睡眠时长、白天小睡时长
+
+#### Scenario: 获取月睡眠分布数据
+- **WHEN** 请求月视图睡眠图表数据
+- **THEN** 返回每日睡眠数据的列表（最多 30 天）
+
+### Requirement: 提供 E.A.S.Y 循环比例数据
+
+statsProvider SHALL 计算并返回吃/玩/睡的时间比例数据。
+
+#### Scenario: 计算 E.A.S.Y 比例
+- **WHEN** 查询统计数据
+- **THEN** 返回吃/玩/睡各自占总活动时间的百分比
+
+#### Scenario: 计算平均循环周期
+- **WHEN** 查询周/月统计数据
+- **THEN** 返回平均 E.A.S.Y 循环周期时长（小时）
+
+### Requirement: 支持环比数据对比
+
+statsProvider SHALL 提供当前周期与上一周期的对比数据。
+
+#### Scenario: 周环比对比
+- **WHEN** 查询周视图统计
+- **THEN** 返回本周与上周的对比数据（如平均周期变化）
+
+#### Scenario: 月环比对比
+- **WHEN** 查询月视图统计
+- **THEN** 返回本月与上月的对比数据
 
