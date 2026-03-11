@@ -21,7 +21,7 @@ import '../widgets/timeline/timeline_list.dart';
 /// 展示宝宝按时间顺序排列的每日活动记录，包含：
 /// - 顶部日期选择器（横向滑动切换周）
 /// - 时间轴列表（活动卡片 + 时间线）
-/// - 点击编辑 / 长按删除功能
+/// - 点击编辑 / 左划删除功能
 /// - 空状态提示
 class TimelinePage extends ConsumerStatefulWidget {
   const TimelinePage({super.key});
@@ -112,7 +112,7 @@ class _TimelinePageState extends ConsumerState<TimelinePage>
           key: _timelineListKey,
           records: records,
           onActivityTap: (record) => _onActivityTap(record),
-          onActivityLongPress: (record) => _onActivityLongPress(record),
+          onActivityDelete: (record) => _deleteRecord(record),
           onAddRecord: () => _showAddRecordSheet(),
         );
       },
@@ -191,36 +191,6 @@ class _TimelinePageState extends ConsumerState<TimelinePage>
   void _onActivityTap(ActivityRecord record) {
     // 显示编辑弹窗
     _showEditSheet(record);
-  }
-
-  /// 长按活动卡片
-  void _onActivityLongPress(ActivityRecord record) {
-    // 显示删除确认对话框
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('删除记录'),
-        content: Text(
-          '确定要删除这条${_getActivityTypeName(record.type)}记录吗？此操作不可恢复。',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              await _deleteRecord(record);
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            child: const Text('删除'),
-          ),
-        ],
-      ),
-    );
   }
 
   /// 删除记录
@@ -375,21 +345,5 @@ class _TimelinePageState extends ConsumerState<TimelinePage>
       context: context,
       record: record,
     );
-  }
-
-  /// 获取活动类型名称
-  String _getActivityTypeName(int type) {
-    switch (type) {
-      case 0:
-        return '吃奶';
-      case 1:
-        return '玩耍';
-      case 2:
-        return '睡眠';
-      case 3:
-        return '排泄';
-      default:
-        return '活动';
-    }
   }
 }

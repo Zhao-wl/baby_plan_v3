@@ -21,8 +21,8 @@ class TimelineList extends StatefulWidget {
   /// 点击活动回调
   final ValueChanged<ActivityRecord>? onActivityTap;
 
-  /// 长按活动回调
-  final ValueChanged<ActivityRecord>? onActivityLongPress;
+  /// 删除活动回调
+  final ValueChanged<ActivityRecord>? onActivityDelete;
 
   /// 添加记录按钮回调
   final VoidCallback? onAddRecord;
@@ -31,7 +31,7 @@ class TimelineList extends StatefulWidget {
     super.key,
     required this.records,
     this.onActivityTap,
-    this.onActivityLongPress,
+    this.onActivityDelete,
     this.onAddRecord,
   });
 
@@ -138,13 +138,14 @@ class _TimelineListState extends State<TimelineList> {
           // 右侧活动卡片
           Expanded(
             child: TimelineActivityCard(
+              key: ValueKey(record.id),
               record: record,
               isOngoing: isOngoing,
               onTap: widget.onActivityTap != null
                   ? () => widget.onActivityTap!(record)
                   : null,
-              onLongPress: widget.onActivityLongPress != null
-                  ? () => widget.onActivityLongPress!(record)
+              onDelete: widget.onActivityDelete != null
+                  ? () => widget.onActivityDelete!(record)
                   : null,
             ),
           ),

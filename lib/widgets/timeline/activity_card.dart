@@ -15,7 +15,7 @@ import '../../utils/format_utils.dart';
 /// - 活动详情
 /// - 备注信息
 /// - 进行中状态指示（可选）
-/// - 点击编辑 / 长按删除交互
+/// - 点击编辑 / 左划删除交互
 class TimelineActivityCard extends StatefulWidget {
   /// 活动记录数据
   final ActivityRecord record;
@@ -23,8 +23,8 @@ class TimelineActivityCard extends StatefulWidget {
   /// 点击回调
   final VoidCallback? onTap;
 
-  /// 长按回调
-  final VoidCallback? onLongPress;
+  /// 删除回调
+  final VoidCallback? onDelete;
 
   /// 是否显示跨天标记
   final bool showCrossDayLabel;
@@ -39,7 +39,7 @@ class TimelineActivityCard extends StatefulWidget {
     super.key,
     required this.record,
     this.onTap,
-    this.onLongPress,
+    this.onDelete,
     this.showCrossDayLabel = false,
     this.crossDayLabel,
     this.isOngoing = false,
@@ -49,9 +49,22 @@ class TimelineActivityCard extends StatefulWidget {
   State<TimelineActivityCard> createState() => _TimelineActivityCardState();
 }
 
-class _TimelineActivityCardState extends State<TimelineActivityCard> {
+class _TimelineActivityCardState extends State<TimelineActivityCard>
+    with SingleTickerProviderStateMixin {
   Timer? _timer;
   Duration _elapsed = Duration.zero;
+
+  /// 滑动偏移量
+  double _swipeOffset = 0;
+
+  /// 删除按钮宽度
+  static const double _deleteButtonWidth = 80.0;
+
+  /// 滑动阈值，超过此值显示删除按钮
+  static const double _swipeThreshold = 40.0;
+
+  /// 是否处于删除模式（显示删除按钮）
+  bool get _isDeleteMode => _swipeOffset <= -_swipeThreshold;
 
   @override
   void initState() {
@@ -134,7 +147,8 @@ class _TimelineActivityCardState extends State<TimelineActivityCard> {
         if (widget.record.breastDurationMinutes != null) {
           details.add('${widget.record.breastDurationMinutes}分钟');
         }
-      } else if (widget.record.eatingMethod == 1 && widget.record.formulaAmountMl != null) {
+      } else if (widget.record.eatingMethod == 1 &&
+          widget.record.formulaAmountMl != null) {
         // 奶粉
         details.add('${widget.record.formulaAmountMl}ml');
       }
@@ -213,6 +227,76 @@ class _TimelineActivityCardState extends State<TimelineActivityCard> {
     }
   }
 
+  /// 处理水平拖拽开始
+  void _onHorizontalDragStart(DragStartDetails details) {
+    // 开始拖拽
+  }
+
+  /// 处理水平拖拽更新
+  void _onHorizontalDragUpdate(DragUpdateDetails details) {
+    setState(() {
+      _swipeOffset += details.primaryDelta ?? 0;
+      // 限制滑动范围：最多滑出删除按钮宽度
+      if (_swipeOffset < -_deleteButtonWidth) {
+        _swipeOffset = -_deleteButtonWidth;
+      }
+      // 右滑限制：不能超过0
+      if (_swipeOffset > 0) {
+        _swipeOffset = 0;
+      }
+    });
+  }
+
+  /// 处理水平拖拽结束
+  void _onHorizontalDragEnd(DragEndDetails details) {
+    setState(() {
+      if (_isDeleteMode) {
+        // 滑动超过阈值，显示删除按钮
+        _swipeOffset = -_deleteButtonWidth;
+      } else {
+        // 未达到阈值，弹回原位
+        _swipeOffset = 0;
+      }
+    });
+  }
+
+  /// 点击删除按钮
+  void _onDeleteTap() async {
+    if (widget.onDelete == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('确认删除'),
+        content: const Text('确定要删除这条记录吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('删除'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      widget.onDelete!();
+    }
+  }
+
+  /// 恢复卡片位置
+  void _resetSwipe() {
+    setState(() {
+      _swipeOffset = 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -220,209 +304,247 @@ class _TimelineActivityCardState extends State<TimelineActivityCard> {
     final activityLightColor = getActivityLightColor(widget.record.type);
     final details = _getActivityDetailsText();
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      onLongPress: widget.onLongPress,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-        decoration: BoxDecoration(
-          color: activityLightColor,
-          borderRadius: AppBorderRadius.md,
-          border: widget.isOngoing
-              ? Border.all(
-                  color: activityColor.withAlpha(128),
-                  width: 2,
-                )
-              : null,
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withAlpha(13),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // 底层：删除按钮
+        Positioned.fill(
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFF5252),
+              borderRadius: AppBorderRadius.md,
             ),
-          ],
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: SizedBox(
+                width: _deleteButtonWidth,
+                child: IconButton(
+                  onPressed: _onDeleteTap,
+                  icon: const Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 顶部：图标 + 类型 + 进行中标签 + 时间
-              Row(
-                children: [
-                  // 活动图标
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: activityColor.withAlpha(51),
-                      borderRadius: AppBorderRadius.sm,
-                    ),
-                    child: Icon(
-                      getActivityIcon(widget.record.type),
-                      size: 18,
-                      color: activityColor,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // 活动类型名称
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: activityColor.withAlpha(26),
-                      borderRadius: AppBorderRadius.xs,
-                    ),
-                    child: Text(
-                      getActivityTypeName(widget.record.type),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: activityColor,
-                      ),
-                    ),
-                  ),
-                  // 进行中标签
-                  if (widget.isOngoing) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: activityColor,
-                        borderRadius: AppBorderRadius.xs,
-                      ),
-                      child: const Text(
-                        '进行中',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                  const Spacer(),
-                  // 时间
-                  Row(
-                    children: [
-                      if (widget.crossDayLabel != null) ...[
-                        Text(
-                          widget.crossDayLabel!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: colorScheme.onSurface.withAlpha(153),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                      ],
-                      Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: colorScheme.onSurface.withAlpha(153),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _formatStartTime(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
+        // 上层：可滑动的卡片内容
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          transform: Matrix4.translationValues(_swipeOffset, 0, 0),
+          child: GestureDetector(
+            onTap: _isDeleteMode ? _resetSwipe : widget.onTap,
+            onHorizontalDragStart: _onHorizontalDragStart,
+            onHorizontalDragUpdate: _onHorizontalDragUpdate,
+            onHorizontalDragEnd: _onHorizontalDragEnd,
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+              decoration: BoxDecoration(
+                color: activityLightColor,
+                borderRadius: AppBorderRadius.md,
+                border: widget.isOngoing
+                    ? Border.all(
+                        color: activityColor.withAlpha(128),
+                        width: 2,
+                      )
+                    : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.shadow.withAlpha(13),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              // 持续时长（进行中活动显示实时计时）
-              if (widget.isOngoing)
-                Row(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.timelapse,
-                      size: 14,
-                      color: activityColor,
+                    // 顶部：图标 + 类型 + 进行中标签 + 时间
+                    Row(
+                      children: [
+                        // 活动图标
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: activityColor.withAlpha(51),
+                            borderRadius: AppBorderRadius.sm,
+                          ),
+                          child: Icon(
+                            getActivityIcon(widget.record.type),
+                            size: 18,
+                            color: activityColor,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // 活动类型名称
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: activityColor.withAlpha(26),
+                            borderRadius: AppBorderRadius.xs,
+                          ),
+                          child: Text(
+                            getActivityTypeName(widget.record.type),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: activityColor,
+                            ),
+                          ),
+                        ),
+                        // 进行中标签
+                        if (widget.isOngoing) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: activityColor,
+                              borderRadius: AppBorderRadius.xs,
+                            ),
+                            child: const Text(
+                              '进行中',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                        const Spacer(),
+                        // 时间
+                        Row(
+                          children: [
+                            if (widget.crossDayLabel != null) ...[
+                              Text(
+                                widget.crossDayLabel!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: colorScheme.onSurface.withAlpha(153),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                            Icon(
+                              Icons.access_time,
+                              size: 14,
+                              color: colorScheme.onSurface.withAlpha(153),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatStartTime(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _formatOngoingDuration(),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: activityColor,
-                      ),
-                    ),
-                  ],
-                )
-              else if (widget.record.durationSeconds != null && widget.record.durationSeconds! > 0)
-                Row(
-                  children: [
-                    Icon(
-                      Icons.timelapse,
-                      size: 14,
-                      color: colorScheme.onSurface.withAlpha(153),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      formatDuration(widget.record.durationSeconds),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: colorScheme.onSurface.withAlpha(179),
-                      ),
-                    ),
-                  ],
-                ),
-              const SizedBox(height: 4),
-              // 活动详情
-              if (details.isNotEmpty)
-                Text(
-                  details,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.onSurface.withAlpha(179),
-                  ),
-                ),
-              // 备注
-              if (widget.record.notes != null && widget.record.notes!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface.withAlpha(128),
-                    borderRadius: AppBorderRadius.xs,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.notes,
-                        size: 14,
-                        color: colorScheme.onSurface.withAlpha(153),
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          widget.record.notes!,
-                          style: TextStyle(
-                            fontSize: 12,
+                    const SizedBox(height: 8),
+                    // 持续时长（进行中活动显示实时计时）
+                    if (widget.isOngoing)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.timelapse,
+                            size: 14,
+                            color: activityColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatOngoingDuration(),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: activityColor,
+                            ),
+                          ),
+                        ],
+                      )
+                    else if (widget.record.durationSeconds != null &&
+                        widget.record.durationSeconds! > 0)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.timelapse,
+                            size: 14,
                             color: colorScheme.onSurface.withAlpha(153),
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          const SizedBox(width: 4),
+                          Text(
+                            formatDuration(widget.record.durationSeconds),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colorScheme.onSurface.withAlpha(179),
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 4),
+                    // 活动详情
+                    if (details.isNotEmpty)
+                      Text(
+                        details,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colorScheme.onSurface.withAlpha(179),
+                        ),
+                      ),
+                    // 备注
+                    if (widget.record.notes != null &&
+                        widget.record.notes!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface.withAlpha(128),
+                          borderRadius: AppBorderRadius.xs,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.notes,
+                              size: 14,
+                              color: colorScheme.onSurface.withAlpha(153),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                widget.record.notes!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: colorScheme.onSurface.withAlpha(153),
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
-            ],
+              ),
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
