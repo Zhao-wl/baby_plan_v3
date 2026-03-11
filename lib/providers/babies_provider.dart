@@ -6,6 +6,7 @@ import '../services/device_service.dart';
 import 'auth_provider.dart';
 import 'database_provider.dart';
 import 'family_provider.dart';
+import 'notification_provider.dart';
 
 /// 宝宝列表状态
 class BabiesState {
@@ -76,10 +77,12 @@ class BabiesNotifier extends Notifier<BabiesState> {
   /// [name] - 宝宝姓名
   /// [gender] - 性别（0=男、1=女）
   /// [birthDate] - 出生日期
+  /// [generateVaccinePlan] - 是否生成疫苗计划（默认 true）
   Future<Baby> addBaby({
     required String name,
     required int gender,
     required DateTime birthDate,
+    bool generateVaccinePlan = true,
   }) async {
     final db = ref.read(databaseProvider);
     final isGuest = ref.read(isGuestProvider);
@@ -110,6 +113,20 @@ class BabiesNotifier extends Notifier<BabiesState> {
     // 查询并返回创建的宝宝
     final baby = await (db.select(db.babies)..where((b) => b.id.equals(id)))
         .getSingle();
+
+    // 生成疫苗计划并调度提醒
+    if (generateVaccinePlan) {
+      try {
+        await ref.read(notificationOperationProvider.notifier)
+            .generateVaccinePlanWithReminders(
+          babyId: baby.id,
+          birthDate: birthDate,
+        );
+      } catch (e) {
+        // 疫苗计划生成失败不影响宝宝创建
+        // 用户可以稍后手动生成
+      }
+    }
 
     return baby;
   }
