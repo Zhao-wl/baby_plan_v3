@@ -328,4 +328,5 @@ import 'package:flutter_test/flutter_test.dart';
   import 'package:drift/drift.dart' hide isNotNull;
   ```
 
-总是用中文回答！
+- 总是用中文回答！
+- open spec的创建和修改只能在对应的WorkTree中！
