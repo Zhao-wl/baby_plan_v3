@@ -1,29 +1,4 @@
-# smart-prediction-card Specification
-
-## Purpose
-首页智能预测卡片组件，基于预测引擎显示宝宝的下一项活动预测。
-
-## Requirements
-
-### Requirement: 显示智能预测卡片
-
-系统 SHALL 在首页显示智能预测卡片组件。
-
-#### Scenario: 智能预测卡片视觉展示
-- **WHEN** 用户进入首页
-- **THEN** 系统显示智能预测卡片
-- **AND** 卡片使用紫色到粉色渐变背景 (#F3E5F5 → #FCE4EC)
-- **AND** 卡片圆角为 24 像素
-
-### Requirement: 智能预测标题
-
-系统 SHALL 在智能预测卡片中显示标题区域。
-
-#### Scenario: 标题显示
-- **WHEN** 智能预测卡片显示时
-- **THEN** 显示紫色圆角图标背景
-- **AND** 显示"智能预测"标题
-- **AND** 标题左侧显示星星图标 (auto_awesome)
+## MODIFIED Requirements
 
 ### Requirement: 智能预测内容动态显示
 
@@ -52,6 +27,8 @@
 - **WHEN** 没有可用的预测结果
 - **THEN** 显示引导文字"记录更多活动，解锁智能预测"
 
+## ADDED Requirements
+
 ### Requirement: 预测卡片交互
 
 系统 SHALL 提供预测卡片的交互功能。
@@ -79,3 +56,17 @@
 - **WHEN** 宝宝有进行中的活动
 - **THEN** 预测卡片显示当前活动状态
 - **AND** 预测显示为醒后的预测
+
+## REMOVED Requirements
+
+### Requirement: 智能预测内容占位
+
+**Reason**: 预测引擎已实现，不再需要占位内容。
+
+**Migration**: 使用真实预测数据替代静态占位内容。
+
+#### Scenario: 示例预测展示
+- **REMOVED** 静态示例预测内容
+
+#### Scenario: 开发中提示
+- **REMOVED** "功能开发中，敬请期待..."提示
