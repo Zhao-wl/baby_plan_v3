@@ -13,6 +13,7 @@ import 'tables/growth_records.dart';
 import 'tables/vaccine_library.dart';
 import 'tables/vaccine_records.dart';
 import 'tables/age_benchmark_data.dart';
+import 'tables/age_activity_patterns.dart';
 
 part 'database.g.dart';
 
@@ -32,13 +33,14 @@ part 'database.g.dart';
     VaccineLibrary,
     VaccineRecords,
     AgeBenchmarkData,
+    AgeActivityPatterns,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -68,6 +70,10 @@ class AppDatabase extends _$AppDatabase {
         if (from < 5) {
           // 从 v4 升级到 v5：添加 activity_records.status 字段
           await m.addColumn(activityRecords, activityRecords.status);
+        }
+        if (from < 6) {
+          // 从 v5 升级到 v6：添加月龄活动模式表
+          await m.createTable(ageActivityPatterns);
         }
       },
     );
@@ -426,5 +432,107 @@ class AppDatabase extends _$AppDatabase {
         version: record.version + 1,
       ),
     );
+  }
+
+  // ========== 月龄活动模式数据管理 ==========
+
+  /// 从 JSON 文件加载月龄活动模式数据到数据库
+  ///
+  /// 仅在数据库为空或版本更新时执行加载。
+  /// 返回是否执行了加载操作。
+  Future<bool> loadAgeActivityPatternsFromJson() async {
+    try {
+      // 检查数据库是否已有数据
+      final existingCount =
+          await (select(ageActivityPatterns).get()).then((list) => list.length);
+
+      // 读取 JSON 文件
+      final jsonString =
+          await rootBundle.loadString('assets/data/age_activity_patterns.json');
+      final jsonData = json.decode(jsonString) as Map<String, dynamic>;
+      final version = jsonData['version'] as int;
+      final patterns = jsonData['patterns'] as List<dynamic>;
+
+      // 检查是否需要更新（版本号更高或数据库为空）
+      if (existingCount > 0) {
+        // 获取当前数据库中的版本号
+        final existingRecords = await select(ageActivityPatterns).get();
+        final currentVersion = existingRecords.first.dataVersion;
+
+        if (currentVersion >= version) {
+          // 数据已是最新，无需加载
+          return false;
+        }
+
+        // 版本更新，先清空旧数据
+        await delete(ageActivityPatterns).go();
+      }
+
+      // 批量插入新数据
+      await batch((batch) {
+        for (final patternJson in patterns) {
+          batch.insert(
+            ageActivityPatterns,
+            AgeActivityPatternsCompanion.insert(
+              week: patternJson['week'] as int,
+              activityType: patternJson['activityType'] as int,
+              intervalMinutes: patternJson['intervalMinutes'] as int,
+              durationMinutes:
+                  Value(patternJson['durationMinutes'] as int?),
+              countPerDay: patternJson['countPerDay'] as int,
+              notes: Value(patternJson['notes'] as String?),
+              dataVersion: Value(version),
+            ),
+          );
+        }
+      });
+
+      return true;
+    } catch (e) {
+      // 加载失败，记录错误但不抛出异常
+      print('加载月龄活动模式数据失败: $e');
+      return false;
+    }
+  }
+
+  /// 获取指定周龄的活动模式
+  ///
+  /// 返回指定周龄的所有活动类型基准数据。
+  Future<List<AgeActivityPattern>> getPatternsByWeek(int week) async {
+    return (select(ageActivityPatterns)..where((p) => p.week.equals(week)))
+        .get();
+  }
+
+  /// 获取指定周龄和活动类型的活动模式
+  ///
+  /// 返回单个活动类型的基准数据，如果不存在返回 null。
+  Future<AgeActivityPattern?> getPattern(int week, int activityType) async {
+    return (select(ageActivityPatterns)
+          ..where((p) => p.week.equals(week))
+          ..where((p) => p.activityType.equals(activityType))
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  /// 获取最近周龄的活动模式
+  ///
+  /// 如果指定周龄不存在，返回最近的有效周龄数据。
+  Future<AgeActivityPattern?> getNearestPattern(
+      int week, int activityType) async {
+    // 先尝试精确匹配
+    var pattern = await getPattern(week, activityType);
+    if (pattern != null) {
+      return pattern;
+    }
+
+    // 如果不存在，查找小于该周龄的最大周龄
+    final patterns = await (select(ageActivityPatterns)
+          ..where((p) => p.activityType.equals(activityType))
+          ..where((p) => p.week.isSmallerThanValue(week))
+          ..orderBy([(p) => OrderingTerm.desc(p.week)])
+          ..limit(1))
+        .get();
+
+    return patterns.isNotEmpty ? patterns.first : null;
   }
 }

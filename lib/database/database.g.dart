@@ -8752,6 +8752,554 @@ class AgeBenchmarkDataCompanion extends UpdateCompanion<AgeBenchmarkDataData> {
   }
 }
 
+class $AgeActivityPatternsTable extends AgeActivityPatterns
+    with TableInfo<$AgeActivityPatternsTable, AgeActivityPattern> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AgeActivityPatternsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _weekMeta = const VerificationMeta('week');
+  @override
+  late final GeneratedColumn<int> week = GeneratedColumn<int>(
+    'week',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _activityTypeMeta = const VerificationMeta(
+    'activityType',
+  );
+  @override
+  late final GeneratedColumn<int> activityType = GeneratedColumn<int>(
+    'activity_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _intervalMinutesMeta = const VerificationMeta(
+    'intervalMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> intervalMinutes = GeneratedColumn<int>(
+    'interval_minutes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _durationMinutesMeta = const VerificationMeta(
+    'durationMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> durationMinutes = GeneratedColumn<int>(
+    'duration_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _countPerDayMeta = const VerificationMeta(
+    'countPerDay',
+  );
+  @override
+  late final GeneratedColumn<int> countPerDay = GeneratedColumn<int>(
+    'count_per_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dataVersionMeta = const VerificationMeta(
+    'dataVersion',
+  );
+  @override
+  late final GeneratedColumn<int> dataVersion = GeneratedColumn<int>(
+    'data_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    week,
+    activityType,
+    intervalMinutes,
+    durationMinutes,
+    countPerDay,
+    notes,
+    dataVersion,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'age_activity_patterns';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AgeActivityPattern> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('week')) {
+      context.handle(
+        _weekMeta,
+        week.isAcceptableOrUnknown(data['week']!, _weekMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_weekMeta);
+    }
+    if (data.containsKey('activity_type')) {
+      context.handle(
+        _activityTypeMeta,
+        activityType.isAcceptableOrUnknown(
+          data['activity_type']!,
+          _activityTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_activityTypeMeta);
+    }
+    if (data.containsKey('interval_minutes')) {
+      context.handle(
+        _intervalMinutesMeta,
+        intervalMinutes.isAcceptableOrUnknown(
+          data['interval_minutes']!,
+          _intervalMinutesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_intervalMinutesMeta);
+    }
+    if (data.containsKey('duration_minutes')) {
+      context.handle(
+        _durationMinutesMeta,
+        durationMinutes.isAcceptableOrUnknown(
+          data['duration_minutes']!,
+          _durationMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('count_per_day')) {
+      context.handle(
+        _countPerDayMeta,
+        countPerDay.isAcceptableOrUnknown(
+          data['count_per_day']!,
+          _countPerDayMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_countPerDayMeta);
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('data_version')) {
+      context.handle(
+        _dataVersionMeta,
+        dataVersion.isAcceptableOrUnknown(
+          data['data_version']!,
+          _dataVersionMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {week, activityType},
+  ];
+  @override
+  AgeActivityPattern map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AgeActivityPattern(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      week: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}week'],
+      )!,
+      activityType: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}activity_type'],
+      )!,
+      intervalMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}interval_minutes'],
+      )!,
+      durationMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_minutes'],
+      ),
+      countPerDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}count_per_day'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      dataVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}data_version'],
+      )!,
+    );
+  }
+
+  @override
+  $AgeActivityPatternsTable createAlias(String alias) {
+    return $AgeActivityPatternsTable(attachedDatabase, alias);
+  }
+}
+
+class AgeActivityPattern extends DataClass
+    implements Insertable<AgeActivityPattern> {
+  /// 主键ID
+  final int id;
+
+  /// 周龄 (0-52)
+  final int week;
+
+  /// 活动类型：0=吃、2=睡、3=排泄
+  /// 注意：不包含活动类型1（玩），因为玩的活动模式较难预测
+  final int activityType;
+
+  /// 平均间隔（分钟）
+  /// 表示该类型活动的平均时间间隔
+  final int intervalMinutes;
+
+  /// 平均持续时间（分钟）
+  /// 可为空，因为排泄活动没有持续时间概念
+  final int? durationMinutes;
+
+  /// 每日平均次数
+  final int countPerDay;
+
+  /// 备注
+  final String? notes;
+
+  /// 数据版本号（用于判断是否需要更新内置数据）
+  final int dataVersion;
+  const AgeActivityPattern({
+    required this.id,
+    required this.week,
+    required this.activityType,
+    required this.intervalMinutes,
+    this.durationMinutes,
+    required this.countPerDay,
+    this.notes,
+    required this.dataVersion,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['week'] = Variable<int>(week);
+    map['activity_type'] = Variable<int>(activityType);
+    map['interval_minutes'] = Variable<int>(intervalMinutes);
+    if (!nullToAbsent || durationMinutes != null) {
+      map['duration_minutes'] = Variable<int>(durationMinutes);
+    }
+    map['count_per_day'] = Variable<int>(countPerDay);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['data_version'] = Variable<int>(dataVersion);
+    return map;
+  }
+
+  AgeActivityPatternsCompanion toCompanion(bool nullToAbsent) {
+    return AgeActivityPatternsCompanion(
+      id: Value(id),
+      week: Value(week),
+      activityType: Value(activityType),
+      intervalMinutes: Value(intervalMinutes),
+      durationMinutes: durationMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationMinutes),
+      countPerDay: Value(countPerDay),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      dataVersion: Value(dataVersion),
+    );
+  }
+
+  factory AgeActivityPattern.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AgeActivityPattern(
+      id: serializer.fromJson<int>(json['id']),
+      week: serializer.fromJson<int>(json['week']),
+      activityType: serializer.fromJson<int>(json['activityType']),
+      intervalMinutes: serializer.fromJson<int>(json['intervalMinutes']),
+      durationMinutes: serializer.fromJson<int?>(json['durationMinutes']),
+      countPerDay: serializer.fromJson<int>(json['countPerDay']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      dataVersion: serializer.fromJson<int>(json['dataVersion']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'week': serializer.toJson<int>(week),
+      'activityType': serializer.toJson<int>(activityType),
+      'intervalMinutes': serializer.toJson<int>(intervalMinutes),
+      'durationMinutes': serializer.toJson<int?>(durationMinutes),
+      'countPerDay': serializer.toJson<int>(countPerDay),
+      'notes': serializer.toJson<String?>(notes),
+      'dataVersion': serializer.toJson<int>(dataVersion),
+    };
+  }
+
+  AgeActivityPattern copyWith({
+    int? id,
+    int? week,
+    int? activityType,
+    int? intervalMinutes,
+    Value<int?> durationMinutes = const Value.absent(),
+    int? countPerDay,
+    Value<String?> notes = const Value.absent(),
+    int? dataVersion,
+  }) => AgeActivityPattern(
+    id: id ?? this.id,
+    week: week ?? this.week,
+    activityType: activityType ?? this.activityType,
+    intervalMinutes: intervalMinutes ?? this.intervalMinutes,
+    durationMinutes: durationMinutes.present
+        ? durationMinutes.value
+        : this.durationMinutes,
+    countPerDay: countPerDay ?? this.countPerDay,
+    notes: notes.present ? notes.value : this.notes,
+    dataVersion: dataVersion ?? this.dataVersion,
+  );
+  AgeActivityPattern copyWithCompanion(AgeActivityPatternsCompanion data) {
+    return AgeActivityPattern(
+      id: data.id.present ? data.id.value : this.id,
+      week: data.week.present ? data.week.value : this.week,
+      activityType: data.activityType.present
+          ? data.activityType.value
+          : this.activityType,
+      intervalMinutes: data.intervalMinutes.present
+          ? data.intervalMinutes.value
+          : this.intervalMinutes,
+      durationMinutes: data.durationMinutes.present
+          ? data.durationMinutes.value
+          : this.durationMinutes,
+      countPerDay: data.countPerDay.present
+          ? data.countPerDay.value
+          : this.countPerDay,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      dataVersion: data.dataVersion.present
+          ? data.dataVersion.value
+          : this.dataVersion,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AgeActivityPattern(')
+          ..write('id: $id, ')
+          ..write('week: $week, ')
+          ..write('activityType: $activityType, ')
+          ..write('intervalMinutes: $intervalMinutes, ')
+          ..write('durationMinutes: $durationMinutes, ')
+          ..write('countPerDay: $countPerDay, ')
+          ..write('notes: $notes, ')
+          ..write('dataVersion: $dataVersion')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    week,
+    activityType,
+    intervalMinutes,
+    durationMinutes,
+    countPerDay,
+    notes,
+    dataVersion,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AgeActivityPattern &&
+          other.id == this.id &&
+          other.week == this.week &&
+          other.activityType == this.activityType &&
+          other.intervalMinutes == this.intervalMinutes &&
+          other.durationMinutes == this.durationMinutes &&
+          other.countPerDay == this.countPerDay &&
+          other.notes == this.notes &&
+          other.dataVersion == this.dataVersion);
+}
+
+class AgeActivityPatternsCompanion extends UpdateCompanion<AgeActivityPattern> {
+  final Value<int> id;
+  final Value<int> week;
+  final Value<int> activityType;
+  final Value<int> intervalMinutes;
+  final Value<int?> durationMinutes;
+  final Value<int> countPerDay;
+  final Value<String?> notes;
+  final Value<int> dataVersion;
+  const AgeActivityPatternsCompanion({
+    this.id = const Value.absent(),
+    this.week = const Value.absent(),
+    this.activityType = const Value.absent(),
+    this.intervalMinutes = const Value.absent(),
+    this.durationMinutes = const Value.absent(),
+    this.countPerDay = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.dataVersion = const Value.absent(),
+  });
+  AgeActivityPatternsCompanion.insert({
+    this.id = const Value.absent(),
+    required int week,
+    required int activityType,
+    required int intervalMinutes,
+    this.durationMinutes = const Value.absent(),
+    required int countPerDay,
+    this.notes = const Value.absent(),
+    this.dataVersion = const Value.absent(),
+  }) : week = Value(week),
+       activityType = Value(activityType),
+       intervalMinutes = Value(intervalMinutes),
+       countPerDay = Value(countPerDay);
+  static Insertable<AgeActivityPattern> custom({
+    Expression<int>? id,
+    Expression<int>? week,
+    Expression<int>? activityType,
+    Expression<int>? intervalMinutes,
+    Expression<int>? durationMinutes,
+    Expression<int>? countPerDay,
+    Expression<String>? notes,
+    Expression<int>? dataVersion,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (week != null) 'week': week,
+      if (activityType != null) 'activity_type': activityType,
+      if (intervalMinutes != null) 'interval_minutes': intervalMinutes,
+      if (durationMinutes != null) 'duration_minutes': durationMinutes,
+      if (countPerDay != null) 'count_per_day': countPerDay,
+      if (notes != null) 'notes': notes,
+      if (dataVersion != null) 'data_version': dataVersion,
+    });
+  }
+
+  AgeActivityPatternsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? week,
+    Value<int>? activityType,
+    Value<int>? intervalMinutes,
+    Value<int?>? durationMinutes,
+    Value<int>? countPerDay,
+    Value<String?>? notes,
+    Value<int>? dataVersion,
+  }) {
+    return AgeActivityPatternsCompanion(
+      id: id ?? this.id,
+      week: week ?? this.week,
+      activityType: activityType ?? this.activityType,
+      intervalMinutes: intervalMinutes ?? this.intervalMinutes,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      countPerDay: countPerDay ?? this.countPerDay,
+      notes: notes ?? this.notes,
+      dataVersion: dataVersion ?? this.dataVersion,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (week.present) {
+      map['week'] = Variable<int>(week.value);
+    }
+    if (activityType.present) {
+      map['activity_type'] = Variable<int>(activityType.value);
+    }
+    if (intervalMinutes.present) {
+      map['interval_minutes'] = Variable<int>(intervalMinutes.value);
+    }
+    if (durationMinutes.present) {
+      map['duration_minutes'] = Variable<int>(durationMinutes.value);
+    }
+    if (countPerDay.present) {
+      map['count_per_day'] = Variable<int>(countPerDay.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (dataVersion.present) {
+      map['data_version'] = Variable<int>(dataVersion.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AgeActivityPatternsCompanion(')
+          ..write('id: $id, ')
+          ..write('week: $week, ')
+          ..write('activityType: $activityType, ')
+          ..write('intervalMinutes: $intervalMinutes, ')
+          ..write('durationMinutes: $durationMinutes, ')
+          ..write('countPerDay: $countPerDay, ')
+          ..write('notes: $notes, ')
+          ..write('dataVersion: $dataVersion')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -8769,6 +9317,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AgeBenchmarkDataTable ageBenchmarkData = $AgeBenchmarkDataTable(
     this,
   );
+  late final $AgeActivityPatternsTable ageActivityPatterns =
+      $AgeActivityPatternsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -8784,6 +9334,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     vaccineLibrary,
     vaccineRecords,
     ageBenchmarkData,
+    ageActivityPatterns,
   ];
 }
 
@@ -12656,6 +13207,283 @@ typedef $$AgeBenchmarkDataTableProcessedTableManager =
       AgeBenchmarkDataData,
       PrefetchHooks Function()
     >;
+typedef $$AgeActivityPatternsTableCreateCompanionBuilder =
+    AgeActivityPatternsCompanion Function({
+      Value<int> id,
+      required int week,
+      required int activityType,
+      required int intervalMinutes,
+      Value<int?> durationMinutes,
+      required int countPerDay,
+      Value<String?> notes,
+      Value<int> dataVersion,
+    });
+typedef $$AgeActivityPatternsTableUpdateCompanionBuilder =
+    AgeActivityPatternsCompanion Function({
+      Value<int> id,
+      Value<int> week,
+      Value<int> activityType,
+      Value<int> intervalMinutes,
+      Value<int?> durationMinutes,
+      Value<int> countPerDay,
+      Value<String?> notes,
+      Value<int> dataVersion,
+    });
+
+class $$AgeActivityPatternsTableFilterComposer
+    extends Composer<_$AppDatabase, $AgeActivityPatternsTable> {
+  $$AgeActivityPatternsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get week => $composableBuilder(
+    column: $table.week,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get activityType => $composableBuilder(
+    column: $table.activityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get intervalMinutes => $composableBuilder(
+    column: $table.intervalMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get countPerDay => $composableBuilder(
+    column: $table.countPerDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dataVersion => $composableBuilder(
+    column: $table.dataVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AgeActivityPatternsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AgeActivityPatternsTable> {
+  $$AgeActivityPatternsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get week => $composableBuilder(
+    column: $table.week,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get activityType => $composableBuilder(
+    column: $table.activityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get intervalMinutes => $composableBuilder(
+    column: $table.intervalMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get countPerDay => $composableBuilder(
+    column: $table.countPerDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dataVersion => $composableBuilder(
+    column: $table.dataVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AgeActivityPatternsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AgeActivityPatternsTable> {
+  $$AgeActivityPatternsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get week =>
+      $composableBuilder(column: $table.week, builder: (column) => column);
+
+  GeneratedColumn<int> get activityType => $composableBuilder(
+    column: $table.activityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get intervalMinutes => $composableBuilder(
+    column: $table.intervalMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get countPerDay => $composableBuilder(
+    column: $table.countPerDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<int> get dataVersion => $composableBuilder(
+    column: $table.dataVersion,
+    builder: (column) => column,
+  );
+}
+
+class $$AgeActivityPatternsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AgeActivityPatternsTable,
+          AgeActivityPattern,
+          $$AgeActivityPatternsTableFilterComposer,
+          $$AgeActivityPatternsTableOrderingComposer,
+          $$AgeActivityPatternsTableAnnotationComposer,
+          $$AgeActivityPatternsTableCreateCompanionBuilder,
+          $$AgeActivityPatternsTableUpdateCompanionBuilder,
+          (
+            AgeActivityPattern,
+            BaseReferences<
+              _$AppDatabase,
+              $AgeActivityPatternsTable,
+              AgeActivityPattern
+            >,
+          ),
+          AgeActivityPattern,
+          PrefetchHooks Function()
+        > {
+  $$AgeActivityPatternsTableTableManager(
+    _$AppDatabase db,
+    $AgeActivityPatternsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AgeActivityPatternsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AgeActivityPatternsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AgeActivityPatternsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> week = const Value.absent(),
+                Value<int> activityType = const Value.absent(),
+                Value<int> intervalMinutes = const Value.absent(),
+                Value<int?> durationMinutes = const Value.absent(),
+                Value<int> countPerDay = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> dataVersion = const Value.absent(),
+              }) => AgeActivityPatternsCompanion(
+                id: id,
+                week: week,
+                activityType: activityType,
+                intervalMinutes: intervalMinutes,
+                durationMinutes: durationMinutes,
+                countPerDay: countPerDay,
+                notes: notes,
+                dataVersion: dataVersion,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int week,
+                required int activityType,
+                required int intervalMinutes,
+                Value<int?> durationMinutes = const Value.absent(),
+                required int countPerDay,
+                Value<String?> notes = const Value.absent(),
+                Value<int> dataVersion = const Value.absent(),
+              }) => AgeActivityPatternsCompanion.insert(
+                id: id,
+                week: week,
+                activityType: activityType,
+                intervalMinutes: intervalMinutes,
+                durationMinutes: durationMinutes,
+                countPerDay: countPerDay,
+                notes: notes,
+                dataVersion: dataVersion,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AgeActivityPatternsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AgeActivityPatternsTable,
+      AgeActivityPattern,
+      $$AgeActivityPatternsTableFilterComposer,
+      $$AgeActivityPatternsTableOrderingComposer,
+      $$AgeActivityPatternsTableAnnotationComposer,
+      $$AgeActivityPatternsTableCreateCompanionBuilder,
+      $$AgeActivityPatternsTableUpdateCompanionBuilder,
+      (
+        AgeActivityPattern,
+        BaseReferences<
+          _$AppDatabase,
+          $AgeActivityPatternsTable,
+          AgeActivityPattern
+        >,
+      ),
+      AgeActivityPattern,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12680,4 +13508,6 @@ class $AppDatabaseManager {
       $$VaccineRecordsTableTableManager(_db, _db.vaccineRecords);
   $$AgeBenchmarkDataTableTableManager get ageBenchmarkData =>
       $$AgeBenchmarkDataTableTableManager(_db, _db.ageBenchmarkData);
+  $$AgeActivityPatternsTableTableManager get ageActivityPatterns =>
+      $$AgeActivityPatternsTableTableManager(_db, _db.ageActivityPatterns);
 }

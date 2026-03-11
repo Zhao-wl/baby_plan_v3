@@ -1,0 +1,218 @@
+{
+  "version": 1,
+  "description": "月龄活动模式基准数据，用于预测宝宝的下一项活动",
+  "source": "参考育儿书籍和儿科医生建议整理",
+  "patterns": [
+    {"week": 0, "activityType": 0, "intervalMinutes": 150, "durationMinutes": 25, "countPerDay": 10, "notes": "新生儿按需喂养，约2-3小时一次"},
+    {"week": 0, "activityType": 2, "intervalMinutes": 90, "durationMinutes": 120, "countPerDay": 8, "notes": "新生儿大部分时间在睡眠，每次1-3小时"},
+    {"week": 0, "activityType": 3, "intervalMinutes": 180, "durationMinutes": null, "countPerDay": 6, "notes": "新生儿每天约6-8次尿布更换"},
+
+    {"week": 1, "activityType": 0, "intervalMinutes": 150, "durationMinutes": 28, "countPerDay": 10, "notes": "喂养时间略有延长"},
+    {"week": 1, "activityType": 2, "intervalMinutes": 90, "durationMinutes": 120, "countPerDay": 8, "notes": "睡眠时间略有缩短"},
+    {"week": 1, "activityType": 3, "intervalMinutes": 180, "durationMinutes": null, "countPerDay": 6, "notes": "排泄次数稳定"},
+
+    {"week": 2, "activityType": 0, "intervalMinutes": 150, "durationMinutes": 30, "countPerDay": 9, "notes": "喂养效率提高"},
+    {"week": 2, "activityType": 2, "intervalMinutes": 100, "durationMinutes": 115, "countPerDay": 7, "notes": "清醒时间逐渐增加"},
+    {"week": 2, "activityType": 3, "intervalMinutes": 180, "durationMinutes": null, "countPerDay": 6, "notes": "排泄次数稳定"},
+
+    {"week": 3, "activityType": 0, "intervalMinutes": 160, "durationMinutes": 32, "countPerDay": 9, "notes": "喂养间隔延长"},
+    {"week": 3, "activityType": 2, "intervalMinutes": 100, "durationMinutes": 110, "countPerDay": 7, "notes": "睡眠时间略有减少"},
+    {"week": 3, "activityType": 3, "intervalMinutes": 190, "durationMinutes": null, "countPerDay": 6, "notes": "排泄间隔略延长"},
+
+    {"week": 4, "activityType": 0, "intervalMinutes": 170, "durationMinutes": 35, "countPerDay": 8, "notes": "满月宝宝喂养间隔约2.5-3小时"},
+    {"week": 4, "activityType": 2, "intervalMinutes": 110, "durationMinutes": 105, "countPerDay": 6, "notes": "睡眠逐渐规律"},
+    {"week": 4, "activityType": 3, "intervalMinutes": 200, "durationMinutes": null, "countPerDay": 5, "notes": "排泄次数略有减少"},
+
+    {"week": 5, "activityType": 0, "intervalMinutes": 180, "durationMinutes": 35, "countPerDay": 8, "notes": "喂养间隔约3小时"},
+    {"week": 5, "activityType": 2, "intervalMinutes": 110, "durationMinutes": 100, "countPerDay": 6, "notes": "睡眠时间减少"},
+    {"week": 5, "activityType": 3, "intervalMinutes": 200, "durationMinutes": null, "countPerDay": 5, "notes": "排泄间隔延长"},
+
+    {"week": 6, "activityType": 0, "intervalMinutes": 180, "durationMinutes": 35, "countPerDay": 7, "notes": "喂养间隔约3小时"},
+    {"week": 6, "activityType": 2, "intervalMinutes": 120, "durationMinutes": 95, "countPerDay": 5, "notes": "白天清醒时间增加"},
+    {"week": 6, "activityType": 3, "intervalMinutes": 210, "durationMinutes": null, "countPerDay": 5, "notes": "排泄间隔继续延长"},
+
+    {"week": 7, "activityType": 0, "intervalMinutes": 190, "durationMinutes": 35, "countPerDay": 7, "notes": "喂养效率提高"},
+    {"week": 7, "activityType": 2, "intervalMinutes": 120, "durationMinutes": 90, "countPerDay": 5, "notes": "睡眠更加规律"},
+    {"week": 7, "activityType": 3, "intervalMinutes": 220, "durationMinutes": null, "countPerDay": 5, "notes": "排泄间隔约3.5小时"},
+
+    {"week": 8, "activityType": 0, "intervalMinutes": 200, "durationMinutes": 35, "countPerDay": 7, "notes": "2个月宝宝喂养间隔约3-3.5小时"},
+    {"week": 2, "activityType": 2, "intervalMinutes": 130, "durationMinutes": 85, "countPerDay": 5, "notes": "白天小睡次数减少"},
+    {"week": 8, "activityType": 3, "intervalMinutes": 220, "durationMinutes": null, "countPerDay": 5, "notes": "排泄间隔约3.5小时"},
+
+    {"week": 9, "activityType": 0, "intervalMinutes": 200, "durationMinutes": 30, "countPerDay": 7, "notes": "喂养间隔约3.5小时"},
+    {"week": 9, "activityType": 2, "intervalMinutes": 130, "durationMinutes": 85, "countPerDay": 5, "notes": "白天小睡3-4次"},
+    {"week": 9, "activityType": 3, "intervalMinutes": 220, "durationMinutes": null, "countPerDay": 5, "notes": "排泄间隔约3.5小时"},
+
+    {"week": 10, "activityType": 0, "intervalMinutes": 210, "durationMinutes": 30, "countPerDay": 6, "notes": "喂养间隔约3.5小时"},
+    {"week": 10, "activityType": 2, "intervalMinutes": 140, "durationMinutes": 80, "countPerDay": 4, "notes": "白天小睡3次"},
+    {"week": 10, "activityType": 3, "intervalMinutes": 230, "durationMinutes": null, "countPerDay": 5, "notes": "排泄间隔约4小时"},
+
+    {"week": 11, "activityType": 0, "intervalMinutes": 210, "durationMinutes": 30, "countPerDay": 6, "notes": "喂养间隔约3.5小时"},
+    {"week": 11, "activityType": 2, "intervalMinutes": 140, "durationMinutes": 80, "countPerDay": 4, "notes": "白天小睡3次"},
+    {"week": 11, "activityType": 3, "intervalMinutes": 230, "durationMinutes": null, "countPerDay": 4, "notes": "排泄间隔约4小时"},
+
+    {"week": 12, "activityType": 0, "intervalMinutes": 220, "durationMinutes": 25, "countPerDay": 6, "notes": "3个月宝宝喂养间隔约3.5-4小时"},
+    {"week": 12, "activityType": 2, "intervalMinutes": 150, "durationMinutes": 75, "countPerDay": 4, "notes": "白天小睡3次，夜间睡眠延长"},
+    {"week": 12, "activityType": 3, "intervalMinutes": 240, "durationMinutes": null, "countPerDay": 4, "notes": "排泄间隔约4小时"},
+
+    {"week": 13, "activityType": 0, "intervalMinutes": 220, "durationMinutes": 25, "countPerDay": 6, "notes": "喂养间隔约3.5-4小时"},
+    {"week": 13, "activityType": 2, "intervalMinutes": 150, "durationMinutes": 75, "countPerDay": 4, "notes": "白天小睡3次"},
+    {"week": 13, "activityType": 3, "intervalMinutes": 240, "durationMinutes": null, "countPerDay": 4, "notes": "排泄间隔约4小时"},
+
+    {"week": 14, "activityType": 0, "intervalMinutes": 230, "durationMinutes": 25, "countPerDay": 6, "notes": "喂养间隔约4小时"},
+    {"week": 14, "activityType": 2, "intervalMinutes": 160, "durationMinutes": 70, "countPerDay": 4, "notes": "白天小睡3次"},
+    {"week": 14, "activityType": 3, "intervalMinutes": 240, "durationMinutes": null, "countPerDay": 4, "notes": "排泄间隔约4小时"},
+
+    {"week": 15, "activityType": 0, "intervalMinutes": 230, "durationMinutes": 25, "countPerDay": 6, "notes": "喂养间隔约4小时"},
+    {"week": 15, "activityType": 2, "intervalMinutes": 160, "durationMinutes": 70, "countPerDay": 4, "notes": "白天小睡3次"},
+    {"week": 15, "activityType": 3, "intervalMinutes": 250, "durationMinutes": null, "countPerDay": 4, "notes": "排泄间隔约4小时"},
+
+    {"week": 16, "activityType": 0, "intervalMinutes": 240, "durationMinutes": 20, "countPerDay": 5, "notes": "4个月宝宝喂养间隔约4小时"},
+    {"week": 16, "activityType": 2, "intervalMinutes": 170, "durationMinutes": 65, "countPerDay": 4, "notes": "白天小睡3次"},
+    {"week": 16, "activityType": 3, "intervalMinutes": 250, "durationMinutes": null, "countPerDay": 4, "notes": "排泄间隔约4小时"},
+
+    {"week": 17, "activityType": 0, "intervalMinutes": 240, "durationMinutes": 20, "countPerDay": 5, "notes": "喂养间隔约4小时"},
+    {"week": 17, "activityType": 2, "intervalMinutes": 170, "durationMinutes": 65, "countPerDay": 4, "notes": "白天小睡3次"},
+    {"week": 17, "activityType": 3, "intervalMinutes": 250, "durationMinutes": null, "countPerDay": 4, "notes": "排泄间隔约4小时"},
+
+    {"week": 18, "activityType": 0, "intervalMinutes": 250, "durationMinutes": 20, "countPerDay": 5, "notes": "喂养间隔约4小时"},
+    {"week": 18, "activityType": 2, "intervalMinutes": 180, "durationMinutes": 60, "countPerDay": 3, "notes": "白天小睡3次"},
+    {"week": 18, "activityType": 3, "intervalMinutes": 260, "durationMinutes": null, "countPerDay": 4, "notes": "排泄间隔约4小时"},
+
+    {"week": 19, "activityType": 0, "intervalMinutes": 250, "durationMinutes": 20, "countPerDay": 5, "notes": "喂养间隔约4小时"},
+    {"week": 19, "activityType": 2, "intervalMinutes": 180, "durationMinutes": 60, "countPerDay": 3, "notes": "白天小睡3次"},
+    {"week": 19, "activityType": 3, "intervalMinutes": 260, "durationMinutes": null, "countPerDay": 4, "notes": "排泄间隔约4小时"},
+
+    {"week": 20, "activityType": 0, "intervalMinutes": 260, "durationMinutes": 20, "countPerDay": 5, "notes": "5个月宝宝喂养间隔约4-4.5小时"},
+    {"week": 20, "activityType": 2, "intervalMinutes": 190, "durationMinutes": 55, "countPerDay": 3, "notes": "白天小睡2-3次"},
+    {"week": 20, "activityType": 3, "intervalMinutes": 270, "durationMinutes": null, "countPerDay": 4, "notes": "排泄间隔约4.5小时"},
+
+    {"week": 21, "activityType": 0, "intervalMinutes": 260, "durationMinutes": 20, "countPerDay": 5, "notes": "喂养间隔约4-4.5小时"},
+    {"week": 21, "activityType": 2, "intervalMinutes": 190, "durationMinutes": 55, "countPerDay": 3, "notes": "白天小睡2-3次"},
+    {"week": 21, "activityType": 3, "intervalMinutes": 270, "durationMinutes": null, "countPerDay": 4, "notes": "排泄间隔约4.5小时"},
+
+    {"week": 22, "activityType": 0, "intervalMinutes": 270, "durationMinutes": 20, "countPerDay": 5, "notes": "喂养间隔约4.5小时"},
+    {"week": 22, "activityType": 2, "intervalMinutes": 200, "durationMinutes": 50, "countPerDay": 3, "notes": "白天小睡2次"},
+    {"week": 22, "activityType": 3, "intervalMinutes": 280, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约4.5小时"},
+
+    {"week": 23, "activityType": 0, "intervalMinutes": 270, "durationMinutes": 20, "countPerDay": 5, "notes": "喂养间隔约4.5小时"},
+    {"week": 23, "activityType": 2, "intervalMinutes": 200, "durationMinutes": 50, "countPerDay": 3, "notes": "白天小睡2次"},
+    {"week": 23, "activityType": 3, "intervalMinutes": 280, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约4.5小时"},
+
+    {"week": 24, "activityType": 0, "intervalMinutes": 280, "durationMinutes": 15, "countPerDay": 5, "notes": "6个月宝宝开始添加辅食，奶量可能减少"},
+    {"week": 24, "activityType": 2, "intervalMinutes": 210, "durationMinutes": 50, "countPerDay": 3, "notes": "白天小睡2次"},
+    {"week": 24, "activityType": 3, "intervalMinutes": 280, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约4.5小时，辅食后排便可能变化"},
+
+    {"week": 25, "activityType": 0, "intervalMinutes": 280, "durationMinutes": 15, "countPerDay": 5, "notes": "辅食添加期间，喂养次数可能调整"},
+    {"week": 25, "activityType": 2, "intervalMinutes": 210, "durationMinutes": 50, "countPerDay": 3, "notes": "白天小睡2次"},
+    {"week": 25, "activityType": 3, "intervalMinutes": 290, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约5小时"},
+
+    {"week": 26, "activityType": 0, "intervalMinutes": 290, "durationMinutes": 15, "countPerDay": 5, "notes": "喂养间隔约5小时"},
+    {"week": 26, "activityType": 2, "intervalMinutes": 220, "durationMinutes": 45, "countPerDay": 3, "notes": "白天小睡2次"},
+    {"week": 26, "activityType": 3, "intervalMinutes": 290, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约5小时"},
+
+    {"week": 27, "activityType": 0, "intervalMinutes": 290, "durationMinutes": 15, "countPerDay": 5, "notes": "喂养间隔约5小时"},
+    {"week": 27, "activityType": 2, "intervalMinutes": 220, "durationMinutes": 45, "countPerDay": 3, "notes": "白天小睡2次"},
+    {"week": 27, "activityType": 3, "intervalMinutes": 300, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约5小时"},
+
+    {"week": 28, "activityType": 0, "intervalMinutes": 300, "durationMinutes": 15, "countPerDay": 4, "notes": "7个月宝宝辅食量增加，奶量可能减少"},
+    {"week": 28, "activityType": 2, "intervalMinutes": 230, "durationMinutes": 45, "countPerDay": 3, "notes": "白天小睡2次"},
+    {"week": 28, "activityType": 3, "intervalMinutes": 300, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约5小时"},
+
+    {"week": 29, "activityType": 0, "intervalMinutes": 300, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约5小时"},
+    {"week": 29, "activityType": 2, "intervalMinutes": 230, "durationMinutes": 45, "countPerDay": 3, "notes": "白天小睡2次"},
+    {"week": 29, "activityType": 3, "intervalMinutes": 300, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约5小时"},
+
+    {"week": 30, "activityType": 0, "intervalMinutes": 310, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约5小时"},
+    {"week": 30, "activityType": 2, "intervalMinutes": 240, "durationMinutes": 45, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 30, "activityType": 3, "intervalMinutes": 310, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约5小时"},
+
+    {"week": 31, "activityType": 0, "intervalMinutes": 310, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约5小时"},
+    {"week": 31, "activityType": 2, "intervalMinutes": 240, "durationMinutes": 45, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 31, "activityType": 3, "intervalMinutes": 310, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约5小时"},
+
+    {"week": 32, "activityType": 0, "intervalMinutes": 320, "durationMinutes": 15, "countPerDay": 4, "notes": "8个月宝宝辅食更丰富"},
+    {"week": 32, "activityType": 2, "intervalMinutes": 250, "durationMinutes": 40, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 32, "activityType": 3, "intervalMinutes": 320, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约5小时"},
+
+    {"week": 33, "activityType": 0, "intervalMinutes": 320, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约5-5.5小时"},
+    {"week": 33, "activityType": 2, "intervalMinutes": 250, "durationMinutes": 40, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 33, "activityType": 3, "intervalMinutes": 320, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约5小时"},
+
+    {"week": 34, "activityType": 0, "intervalMinutes": 330, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约5.5小时"},
+    {"week": 34, "activityType": 2, "intervalMinutes": 260, "durationMinutes": 40, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 34, "activityType": 3, "intervalMinutes": 330, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约5.5小时"},
+
+    {"week": 35, "activityType": 0, "intervalMinutes": 330, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约5.5小时"},
+    {"week": 35, "activityType": 2, "intervalMinutes": 260, "durationMinutes": 40, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 35, "activityType": 3, "intervalMinutes": 330, "durationMinutes": null, "countPerDay": 3, "notes": "排泄间隔约5.5小时"},
+
+    {"week": 36, "activityType": 0, "intervalMinutes": 340, "durationMinutes": 15, "countPerDay": 4, "notes": "9个月宝宝喂养间隔约5.5小时"},
+    {"week": 36, "activityType": 2, "intervalMinutes": 270, "durationMinutes": 35, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 36, "activityType": 3, "intervalMinutes": 340, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约5.5小时"},
+
+    {"week": 37, "activityType": 0, "intervalMinutes": 340, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约5.5小时"},
+    {"week": 37, "activityType": 2, "intervalMinutes": 270, "durationMinutes": 35, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 37, "activityType": 3, "intervalMinutes": 340, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约5.5小时"},
+
+    {"week": 38, "activityType": 0, "intervalMinutes": 350, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约6小时"},
+    {"week": 38, "activityType": 2, "intervalMinutes": 280, "durationMinutes": 35, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 38, "activityType": 3, "intervalMinutes": 350, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 39, "activityType": 0, "intervalMinutes": 350, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约6小时"},
+    {"week": 39, "activityType": 2, "intervalMinutes": 280, "durationMinutes": 35, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 39, "activityType": 3, "intervalMinutes": 350, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 40, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "10个月宝宝喂养间隔约6小时"},
+    {"week": 40, "activityType": 2, "intervalMinutes": 290, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 40, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 41, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约6小时"},
+    {"week": 41, "activityType": 2, "intervalMinutes": 290, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 41, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 42, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约6小时"},
+    {"week": 42, "activityType": 2, "intervalMinutes": 300, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 42, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 43, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约6小时"},
+    {"week": 43, "activityType": 2, "intervalMinutes": 300, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡2次"},
+    {"week": 43, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 44, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "11个月宝宝喂养间隔约6小时"},
+    {"week": 44, "activityType": 2, "intervalMinutes": 310, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡1-2次"},
+    {"week": 44, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 45, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约6小时"},
+    {"week": 45, "activityType": 2, "intervalMinutes": 310, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡1-2次"},
+    {"week": 45, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 46, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约6小时"},
+    {"week": 46, "activityType": 2, "intervalMinutes": 320, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡1-2次"},
+    {"week": 46, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 47, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约6小时"},
+    {"week": 47, "activityType": 2, "intervalMinutes": 320, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡1-2次"},
+    {"week": 47, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 48, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "12个月宝宝接近断奶，喂养间隔约6小时"},
+    {"week": 48, "activityType": 2, "intervalMinutes": 330, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡1-2次"},
+    {"week": 48, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 49, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约6小时"},
+    {"week": 49, "activityType": 2, "intervalMinutes": 330, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡1-2次"},
+    {"week": 49, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 50, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约6小时"},
+    {"week": 50, "activityType": 2, "intervalMinutes": 340, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡1次"},
+    {"week": 50, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 51, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 4, "notes": "喂养间隔约6小时"},
+    {"week": 51, "activityType": 2, "intervalMinutes": 340, "durationMinutes": 30, "countPerDay": 2, "notes": "白天小睡1次"},
+    {"week": 51, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"},
+
+    {"week": 52, "activityType": 0, "intervalMinutes": 360, "durationMinutes": 15, "countPerDay": 3, "notes": "1岁宝宝每日3餐+奶，喂养间隔约6小时"},
+    {"week": 52, "activityType": 2, "intervalMinutes": 360, "durationMinutes": 30, "countPerDay": 1, "notes": "白天小睡1次"},
+    {"week": 52, "activityType": 3, "intervalMinutes": 360, "durationMinutes": null, "countPerDay": 2, "notes": "排泄间隔约6小时"}
+  ]
+}
