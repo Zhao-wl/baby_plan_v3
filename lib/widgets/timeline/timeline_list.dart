@@ -13,7 +13,8 @@ import 'activity_card.dart';
 /// - 活动节点（圆形，颜色对应活动类型）
 /// - 活动卡片
 /// - 空状态提示
-class TimelineList extends StatelessWidget {
+/// - 自动滚动到最新记录
+class TimelineList extends StatefulWidget {
   /// 活动记录列表
   final List<ActivityRecord> records;
 
@@ -34,21 +35,75 @@ class TimelineList extends StatelessWidget {
     this.onAddRecord,
   });
 
+  /// 滚动到底部（外部调用）
+  static void scrollToBottom(BuildContext context) {
+    final state = context.findAncestorStateOfType<_TimelineListState>();
+    state?._scrollToBottom();
+  }
+
+  @override
+  State<TimelineList> createState() => _TimelineListState();
+}
+
+class _TimelineListState extends State<TimelineList> {
+  final ScrollController _scrollController = ScrollController();
+
+  /// 记录上一次的记录数量，用于检测新增记录
+  int _previousRecordCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _previousRecordCount = widget.records.length;
+  }
+
+  @override
+  void didUpdateWidget(TimelineList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // 只在检测到新增记录时滚动（用户主动添加）
+    if (widget.records.length > _previousRecordCount && widget.records.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+    }
+    _previousRecordCount = widget.records.length;
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  /// 滚动到列表底部
+  void _scrollToBottom() {
+    if (_scrollController.hasClients && widget.records.isNotEmpty) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (records.isEmpty) {
+    if (widget.records.isEmpty) {
+      _previousRecordCount = 0;
       return _buildEmptyState(context);
     }
 
     return CustomPaint(
       painter: _TimelineAxisPainter(
-        records: records,
+        records: widget.records,
       ),
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        itemCount: records.length,
+        controller: _scrollController,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16).copyWith(bottom: 88),
+        itemCount: widget.records.length,
         itemBuilder: (context, index) {
-          final record = records[index];
+          final record = widget.records[index];
           return _buildTimelineItem(context, record, index);
         },
       ),
@@ -61,6 +116,9 @@ class TimelineList extends StatelessWidget {
     ActivityRecord record,
     int index,
   ) {
+    // 判断是否为进行中活动（status=0 表示进行中）
+    final isOngoing = record.status == 0;
+
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,7 +130,7 @@ class TimelineList extends StatelessWidget {
               children: [
                 const SizedBox(height: 24),
                 // 时间节点
-                _buildTimelineNode(record),
+                _buildTimelineNode(record, isOngoing),
                 const SizedBox(height: 8),
               ],
             ),
@@ -81,11 +139,12 @@ class TimelineList extends StatelessWidget {
           Expanded(
             child: TimelineActivityCard(
               record: record,
-              onTap: onActivityTap != null
-                  ? () => onActivityTap!(record)
+              isOngoing: isOngoing,
+              onTap: widget.onActivityTap != null
+                  ? () => widget.onActivityTap!(record)
                   : null,
-              onLongPress: onActivityLongPress != null
-                  ? () => onActivityLongPress!(record)
+              onLongPress: widget.onActivityLongPress != null
+                  ? () => widget.onActivityLongPress!(record)
                   : null,
             ),
           ),
@@ -95,8 +154,13 @@ class TimelineList extends StatelessWidget {
   }
 
   /// 构建时间节点
-  Widget _buildTimelineNode(ActivityRecord record) {
+  Widget _buildTimelineNode(ActivityRecord record, bool isOngoing) {
     final color = getActivityColor(record.type);
+
+    // 进行中活动使用呼吸动画
+    if (isOngoing) {
+      return _BreathingNode(color: color);
+    }
 
     return Container(
       width: 16,
@@ -161,9 +225,9 @@ class TimelineList extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           // 添加按钮
-          if (onAddRecord != null)
+          if (widget.onAddRecord != null)
             FilledButton.icon(
-              onPressed: onAddRecord,
+              onPressed: widget.onAddRecord,
               icon: const Icon(Icons.add),
               label: const Text('添加记录'),
               style: FilledButton.styleFrom(
@@ -220,4 +284,69 @@ class _TimelineAxisPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+/// 呼吸动画节点
+///
+/// 用于进行中活动的时间轴节点，具有呼吸动画效果
+class _BreathingNode extends StatefulWidget {
+  final Color color;
+
+  const _BreathingNode({required this.color});
+
+  @override
+  State<_BreathingNode> createState() => _BreathingNodeState();
+}
+
+class _BreathingNodeState extends State<_BreathingNode>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _animation = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: widget.color.withAlpha((_animation.value * 255).round()),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white,
+              width: 3,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withAlpha((_animation.value * 100).round()),
+                blurRadius: 8,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

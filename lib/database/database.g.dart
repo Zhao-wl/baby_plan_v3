@@ -3220,6 +3220,16 @@ class $ActivityRecordsTable extends ActivityRecords
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   static const VerificationMeta _eatingMethodMeta = const VerificationMeta(
     'eatingMethod',
   );
@@ -3466,6 +3476,7 @@ class $ActivityRecordsTable extends ActivityRecords
     durationSeconds,
     notes,
     isVerified,
+    status,
     eatingMethod,
     breastSide,
     breastDurationMinutes,
@@ -3552,6 +3563,12 @@ class $ActivityRecordsTable extends ActivityRecords
       context.handle(
         _isVerifiedMeta,
         isVerified.isAcceptableOrUnknown(data['is_verified']!, _isVerifiedMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
       );
     }
     if (data.containsKey('eating_method')) {
@@ -3745,6 +3762,10 @@ class $ActivityRecordsTable extends ActivityRecords
         DriftSqlType.bool,
         data['${effectivePrefix}is_verified'],
       )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status'],
+      )!,
       eatingMethod: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}eating_method'],
@@ -3863,6 +3884,9 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
   /// 是否已校对（用户编辑过）
   final bool isVerified;
 
+  /// 活动状态：0=进行中、1=已完成（默认）
+  final int status;
+
   /// 喂养方式：0=母乳、1=奶粉、2=辅食
   final int? eatingMethod;
 
@@ -3934,6 +3958,7 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
     this.durationSeconds,
     this.notes,
     required this.isVerified,
+    required this.status,
     this.eatingMethod,
     this.breastSide,
     this.breastDurationMinutes,
@@ -3973,6 +3998,7 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
       map['notes'] = Variable<String>(notes);
     }
     map['is_verified'] = Variable<bool>(isVerified);
+    map['status'] = Variable<int>(status);
     if (!nullToAbsent || eatingMethod != null) {
       map['eating_method'] = Variable<int>(eatingMethod);
     }
@@ -4045,6 +4071,7 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
           ? const Value.absent()
           : Value(notes),
       isVerified: Value(isVerified),
+      status: Value(status),
       eatingMethod: eatingMethod == null && nullToAbsent
           ? const Value.absent()
           : Value(eatingMethod),
@@ -4113,6 +4140,7 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
       durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
       notes: serializer.fromJson<String?>(json['notes']),
       isVerified: serializer.fromJson<bool>(json['isVerified']),
+      status: serializer.fromJson<int>(json['status']),
       eatingMethod: serializer.fromJson<int?>(json['eatingMethod']),
       breastSide: serializer.fromJson<int?>(json['breastSide']),
       breastDurationMinutes: serializer.fromJson<int?>(
@@ -4150,6 +4178,7 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
       'durationSeconds': serializer.toJson<int?>(durationSeconds),
       'notes': serializer.toJson<String?>(notes),
       'isVerified': serializer.toJson<bool>(isVerified),
+      'status': serializer.toJson<int>(status),
       'eatingMethod': serializer.toJson<int?>(eatingMethod),
       'breastSide': serializer.toJson<int?>(breastSide),
       'breastDurationMinutes': serializer.toJson<int?>(breastDurationMinutes),
@@ -4183,6 +4212,7 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
     Value<int?> durationSeconds = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     bool? isVerified,
+    int? status,
     Value<int?> eatingMethod = const Value.absent(),
     Value<int?> breastSide = const Value.absent(),
     Value<int?> breastDurationMinutes = const Value.absent(),
@@ -4215,6 +4245,7 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
         : this.durationSeconds,
     notes: notes.present ? notes.value : this.notes,
     isVerified: isVerified ?? this.isVerified,
+    status: status ?? this.status,
     eatingMethod: eatingMethod.present ? eatingMethod.value : this.eatingMethod,
     breastSide: breastSide.present ? breastSide.value : this.breastSide,
     breastDurationMinutes: breastDurationMinutes.present
@@ -4259,6 +4290,7 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
       isVerified: data.isVerified.present
           ? data.isVerified.value
           : this.isVerified,
+      status: data.status.present ? data.status.value : this.status,
       eatingMethod: data.eatingMethod.present
           ? data.eatingMethod.value
           : this.eatingMethod,
@@ -4318,6 +4350,7 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
           ..write('durationSeconds: $durationSeconds, ')
           ..write('notes: $notes, ')
           ..write('isVerified: $isVerified, ')
+          ..write('status: $status, ')
           ..write('eatingMethod: $eatingMethod, ')
           ..write('breastSide: $breastSide, ')
           ..write('breastDurationMinutes: $breastDurationMinutes, ')
@@ -4353,6 +4386,7 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
     durationSeconds,
     notes,
     isVerified,
+    status,
     eatingMethod,
     breastSide,
     breastDurationMinutes,
@@ -4387,6 +4421,7 @@ class ActivityRecord extends DataClass implements Insertable<ActivityRecord> {
           other.durationSeconds == this.durationSeconds &&
           other.notes == this.notes &&
           other.isVerified == this.isVerified &&
+          other.status == this.status &&
           other.eatingMethod == this.eatingMethod &&
           other.breastSide == this.breastSide &&
           other.breastDurationMinutes == this.breastDurationMinutes &&
@@ -4419,6 +4454,7 @@ class ActivityRecordsCompanion extends UpdateCompanion<ActivityRecord> {
   final Value<int?> durationSeconds;
   final Value<String?> notes;
   final Value<bool> isVerified;
+  final Value<int> status;
   final Value<int?> eatingMethod;
   final Value<int?> breastSide;
   final Value<int?> breastDurationMinutes;
@@ -4449,6 +4485,7 @@ class ActivityRecordsCompanion extends UpdateCompanion<ActivityRecord> {
     this.durationSeconds = const Value.absent(),
     this.notes = const Value.absent(),
     this.isVerified = const Value.absent(),
+    this.status = const Value.absent(),
     this.eatingMethod = const Value.absent(),
     this.breastSide = const Value.absent(),
     this.breastDurationMinutes = const Value.absent(),
@@ -4480,6 +4517,7 @@ class ActivityRecordsCompanion extends UpdateCompanion<ActivityRecord> {
     this.durationSeconds = const Value.absent(),
     this.notes = const Value.absent(),
     this.isVerified = const Value.absent(),
+    this.status = const Value.absent(),
     this.eatingMethod = const Value.absent(),
     this.breastSide = const Value.absent(),
     this.breastDurationMinutes = const Value.absent(),
@@ -4513,6 +4551,7 @@ class ActivityRecordsCompanion extends UpdateCompanion<ActivityRecord> {
     Expression<int>? durationSeconds,
     Expression<String>? notes,
     Expression<bool>? isVerified,
+    Expression<int>? status,
     Expression<int>? eatingMethod,
     Expression<int>? breastSide,
     Expression<int>? breastDurationMinutes,
@@ -4544,6 +4583,7 @@ class ActivityRecordsCompanion extends UpdateCompanion<ActivityRecord> {
       if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (notes != null) 'notes': notes,
       if (isVerified != null) 'is_verified': isVerified,
+      if (status != null) 'status': status,
       if (eatingMethod != null) 'eating_method': eatingMethod,
       if (breastSide != null) 'breast_side': breastSide,
       if (breastDurationMinutes != null)
@@ -4578,6 +4618,7 @@ class ActivityRecordsCompanion extends UpdateCompanion<ActivityRecord> {
     Value<int?>? durationSeconds,
     Value<String?>? notes,
     Value<bool>? isVerified,
+    Value<int>? status,
     Value<int?>? eatingMethod,
     Value<int?>? breastSide,
     Value<int?>? breastDurationMinutes,
@@ -4609,6 +4650,7 @@ class ActivityRecordsCompanion extends UpdateCompanion<ActivityRecord> {
       durationSeconds: durationSeconds ?? this.durationSeconds,
       notes: notes ?? this.notes,
       isVerified: isVerified ?? this.isVerified,
+      status: status ?? this.status,
       eatingMethod: eatingMethod ?? this.eatingMethod,
       breastSide: breastSide ?? this.breastSide,
       breastDurationMinutes:
@@ -4660,6 +4702,9 @@ class ActivityRecordsCompanion extends UpdateCompanion<ActivityRecord> {
     }
     if (isVerified.present) {
       map['is_verified'] = Variable<bool>(isVerified.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
     }
     if (eatingMethod.present) {
       map['eating_method'] = Variable<int>(eatingMethod.value);
@@ -4740,6 +4785,7 @@ class ActivityRecordsCompanion extends UpdateCompanion<ActivityRecord> {
           ..write('durationSeconds: $durationSeconds, ')
           ..write('notes: $notes, ')
           ..write('isVerified: $isVerified, ')
+          ..write('status: $status, ')
           ..write('eatingMethod: $eatingMethod, ')
           ..write('breastSide: $breastSide, ')
           ..write('breastDurationMinutes: $breastDurationMinutes, ')
@@ -10191,6 +10237,7 @@ typedef $$ActivityRecordsTableCreateCompanionBuilder =
       Value<int?> durationSeconds,
       Value<String?> notes,
       Value<bool> isVerified,
+      Value<int> status,
       Value<int?> eatingMethod,
       Value<int?> breastSide,
       Value<int?> breastDurationMinutes,
@@ -10223,6 +10270,7 @@ typedef $$ActivityRecordsTableUpdateCompanionBuilder =
       Value<int?> durationSeconds,
       Value<String?> notes,
       Value<bool> isVerified,
+      Value<int> status,
       Value<int?> eatingMethod,
       Value<int?> breastSide,
       Value<int?> breastDurationMinutes,
@@ -10292,6 +10340,11 @@ class $$ActivityRecordsTableFilterComposer
 
   ColumnFilters<bool> get isVerified => $composableBuilder(
     column: $table.isVerified,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get status => $composableBuilder(
+    column: $table.status,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10450,6 +10503,11 @@ class $$ActivityRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get eatingMethod => $composableBuilder(
     column: $table.eatingMethod,
     builder: (column) => ColumnOrderings(column),
@@ -10593,6 +10651,9 @@ class $$ActivityRecordsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
   GeneratedColumn<int> get eatingMethod => $composableBuilder(
     column: $table.eatingMethod,
     builder: (column) => column,
@@ -10726,6 +10787,7 @@ class $$ActivityRecordsTableTableManager
                 Value<int?> durationSeconds = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<bool> isVerified = const Value.absent(),
+                Value<int> status = const Value.absent(),
                 Value<int?> eatingMethod = const Value.absent(),
                 Value<int?> breastSide = const Value.absent(),
                 Value<int?> breastDurationMinutes = const Value.absent(),
@@ -10756,6 +10818,7 @@ class $$ActivityRecordsTableTableManager
                 durationSeconds: durationSeconds,
                 notes: notes,
                 isVerified: isVerified,
+                status: status,
                 eatingMethod: eatingMethod,
                 breastSide: breastSide,
                 breastDurationMinutes: breastDurationMinutes,
@@ -10788,6 +10851,7 @@ class $$ActivityRecordsTableTableManager
                 Value<int?> durationSeconds = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<bool> isVerified = const Value.absent(),
+                Value<int> status = const Value.absent(),
                 Value<int?> eatingMethod = const Value.absent(),
                 Value<int?> breastSide = const Value.absent(),
                 Value<int?> breastDurationMinutes = const Value.absent(),
@@ -10818,6 +10882,7 @@ class $$ActivityRecordsTableTableManager
                 durationSeconds: durationSeconds,
                 notes: notes,
                 isVerified: isVerified,
+                status: status,
                 eatingMethod: eatingMethod,
                 breastSide: breastSide,
                 breastDurationMinutes: breastDurationMinutes,

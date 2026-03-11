@@ -88,7 +88,12 @@ final timelineProvider = FutureProvider.family<List<ActivityRecord>, TimelineQue
             r.endTime!.isBefore(endOfDay) &&
             r.startTime.isBefore(startOfDay);
 
-        return startsToday || endsToday;
+        // 情况3：进行中活动（endTime 为空，但开始时间在当天或更早）
+        final isOngoing = r.endTime == null && r.status == 0;
+        final ongoingVisible = isOngoing &&
+            (r.startTime.isBefore(endOfDay) || _isSameDay(r.startTime, query.date));
+
+        return startsToday || endsToday || ongoingVisible;
       })
       .toList()
     ..sort((a, b) => a.startTime.compareTo(b.startTime));

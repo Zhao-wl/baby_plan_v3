@@ -19,6 +19,7 @@ export 'sync_provider.dart';
 export 'theme_provider.dart';
 export 'navigation_provider.dart';
 export 'growth_record_provider.dart';
+export 'ongoing_activity_provider.dart';
 export 'recent_activities_provider.dart';
 export 'timer_provider.dart';
 export 'timer_storage_provider.dart';

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../database/tables/activity_records.dart';
 import '../../providers/providers.dart';
 import '../../theme/app_colors.dart';
+import '../timeline/ongoing_activity_form_sheet.dart';
 import 'quick_record_sheet.dart';
 
 /// 快捷操作台组件
@@ -23,9 +24,15 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
   DateTime? _lastTapTime;
   static const _debounceDuration = Duration(milliseconds: 500);
   bool _hasShownNoBabyTip = false;
+  final Map<ActivityType, bool> _isLongPressing = {};
 
-  /// 处理长按
+  /// 处理长按 - 先启动计时器，再弹出表单编辑详情
   Future<void> _handleLongPress(ActivityType activityType) async {
+    // 恢复按钮缩放
+    setState(() {
+      _isLongPressing[activityType] = false;
+    });
+
     final currentBabyId = ref.read(currentBabyIdProvider);
 
     // 检查是否有宝宝
@@ -44,12 +51,66 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
       return;
     }
 
-    // 打开快捷记录弹窗
-    await QuickRecordSheet.show(
-      context: context,
-      activityType: activityType,
-    );
+    // 检查是否已有进行中活动
+    final timerState = ref.read(timerProvider);
+    if (timerState.isTiming) {
+      // 如果是相同活动类型，停止并弹出表单完成记录
+      if (timerState.activityType == activityType) {
+        final result = await ref.read(timerProvider.notifier).stopWithForm();
+        if (result != null && mounted) {
+          await QuickRecordSheet.show(
+            context: context,
+            activityType: result['activityType'] as ActivityType,
+            startTime: result['startTime'] as DateTime,
+            endTime: result['endTime'] as DateTime,
+          );
+        }
+        return;
+      }
+
+      // 不同活动类型，先结束当前活动再开始新活动
+      await ref.read(timerProvider.notifier).stop();
+    }
+
+    // 启动新计时器（会创建草稿记录）
+    final success = await ref.read(timerProvider.notifier).start(activityType);
+    if (!success || !mounted) {
+      return;
+    }
+
+    // 获取刚创建的记录 ID
+    final newTimerState = ref.read(timerProvider);
+    final recordId = newTimerState.currentRecordId;
+
+    // 弹出表单让用户编辑详情
+    if (mounted && recordId != null) {
+      final saved = await OngoingActivityFormSheet.show(
+        context: context,
+        activityType: activityType,
+        draftRecordId: recordId,
+      );
+
+      // 如果用户取消，清理计时器和草稿记录
+      if (saved != true) {
+        await ref.read(timerProvider.notifier).cancel();
+      }
+    }
   }
+
+  /// 处理长按开始（用于动画）
+  void _handleLongPressStart(ActivityType activityType) {
+    setState(() {
+      _isLongPressing[activityType] = true;
+    });
+  }
+
+  /// 处理长按结束/取消（用于动画）
+  void _handleLongPressEnd(ActivityType activityType) {
+    setState(() {
+      _isLongPressing[activityType] = false;
+    });
+  }
+
   bool _shouldProcessTap() {
     final now = DateTime.now();
     if (_lastTapTime != null &&
@@ -142,11 +203,14 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
             isActive: timerState.activityType == ActivityType.eat,
             isPaused: timerState.isPaused,
             isEnabled: currentBabyId != null,
+            isLongPressing: _isLongPressing[ActivityType.eat] ?? false,
             duration: timerState.activityType == ActivityType.eat
                 ? timerState.currentDuration
                 : null,
             onPressed: () => _handleTap(ActivityType.eat),
             onLongPress: () => _handleLongPress(ActivityType.eat),
+            onLongPressStart: () => _handleLongPressStart(ActivityType.eat),
+            onLongPressEnd: () => _handleLongPressEnd(ActivityType.eat),
           ),
           _ActionButton(
             label: '玩耍',
@@ -156,11 +220,14 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
             isActive: timerState.activityType == ActivityType.activity,
             isPaused: timerState.isPaused,
             isEnabled: currentBabyId != null,
+            isLongPressing: _isLongPressing[ActivityType.activity] ?? false,
             duration: timerState.activityType == ActivityType.activity
                 ? timerState.currentDuration
                 : null,
             onPressed: () => _handleTap(ActivityType.activity),
             onLongPress: () => _handleLongPress(ActivityType.activity),
+            onLongPressStart: () => _handleLongPressStart(ActivityType.activity),
+            onLongPressEnd: () => _handleLongPressEnd(ActivityType.activity),
           ),
           _ActionButton(
             label: '睡眠',
@@ -170,11 +237,14 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
             isActive: timerState.activityType == ActivityType.sleep,
             isPaused: timerState.isPaused,
             isEnabled: currentBabyId != null,
+            isLongPressing: _isLongPressing[ActivityType.sleep] ?? false,
             duration: timerState.activityType == ActivityType.sleep
                 ? timerState.currentDuration
                 : null,
             onPressed: () => _handleTap(ActivityType.sleep),
             onLongPress: () => _handleLongPress(ActivityType.sleep),
+            onLongPressStart: () => _handleLongPressStart(ActivityType.sleep),
+            onLongPressEnd: () => _handleLongPressEnd(ActivityType.sleep),
           ),
           _ActionButton(
             label: '便便',
@@ -184,11 +254,14 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
             isActive: timerState.activityType == ActivityType.poop,
             isPaused: timerState.isPaused,
             isEnabled: currentBabyId != null,
+            isLongPressing: _isLongPressing[ActivityType.poop] ?? false,
             duration: timerState.activityType == ActivityType.poop
                 ? timerState.currentDuration
                 : null,
             onPressed: () => _handleTap(ActivityType.poop),
             onLongPress: () => _handleLongPress(ActivityType.poop),
+            onLongPressStart: () => _handleLongPressStart(ActivityType.poop),
+            onLongPressEnd: () => _handleLongPressEnd(ActivityType.poop),
           ),
         ],
       ),
@@ -205,9 +278,12 @@ class _ActionButton extends StatelessWidget {
   final bool isActive;
   final bool isPaused;
   final bool isEnabled;
+  final bool isLongPressing;
   final Duration? duration;
   final VoidCallback onPressed;
   final VoidCallback? onLongPress;
+  final VoidCallback? onLongPressStart;
+  final VoidCallback? onLongPressEnd;
 
   const _ActionButton({
     required this.label,
@@ -217,9 +293,12 @@ class _ActionButton extends StatelessWidget {
     this.isActive = false,
     this.isPaused = false,
     this.isEnabled = true,
+    this.isLongPressing = false,
     this.duration,
     required this.onPressed,
     this.onLongPress,
+    this.onLongPressStart,
+    this.onLongPressEnd,
   });
 
   String _formatDuration(Duration d) {
@@ -238,17 +317,26 @@ class _ActionButton extends StatelessWidget {
     final effectiveColor = isEnabled ? color : disabledColor;
     final effectiveLightColor = isEnabled ? lightColor : disabledLightColor;
 
+    // 长按时的缩放效果
+    final scale = isLongPressing ? 0.9 : 1.0;
+
     return Material(
       color: Colors.transparent,
-      child: InkWell(
+      child: GestureDetector(
         onTap: onPressed,
         onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
+        onLongPressStart: (_) => onLongPressStart?.call(),
+        onLongPressEnd: (_) => onLongPressEnd?.call(),
+        onLongPressCancel: () => onLongPressEnd?.call(),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeInOut,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+          child: Transform.scale(
+            scale: scale,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
               // 图标容器
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -272,7 +360,16 @@ class _ActionButton extends StatelessWidget {
                             offset: const Offset(0, 2),
                           ),
                         ]
-                      : null,
+                      : isLongPressing
+                          ? [
+                              BoxShadow(
+                                color: effectiveColor.withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                                spreadRadius: 2,
+                              ),
+                            ]
+                          : null,
                 ),
                 child: Icon(
                   isPaused && isActive ? Icons.pause : icon,
@@ -304,6 +401,7 @@ class _ActionButton extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

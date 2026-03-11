@@ -36,7 +36,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -62,6 +62,10 @@ class AppDatabase extends _$AppDatabase {
         if (from < 4) {
           // 从 v3 升级到 v4：添加 device_id 字段
           await m.addColumn(users, users.deviceId);
+        }
+        if (from < 5) {
+          // 从 v4 升级到 v5：添加 activity_records.status 字段
+          await m.addColumn(activityRecords, activityRecords.status);
         }
       },
     );
@@ -120,5 +124,143 @@ class AppDatabase extends _$AppDatabase {
   /// 清空测试记录
   Future<void> clearTestRecords() async {
     await delete(testRecords).go();
+  }
+
+  // ========== 进行中活动管理 ==========
+
+  /// 创建进行中活动
+  ///
+  /// 创建一个新的活动记录，状态为进行中（status=0），没有结束时间
+  Future<int> createOngoingActivity({
+    required int babyId,
+    required int type,
+    String? notes,
+  }) async {
+    final now = DateTime.now();
+    final companion = ActivityRecordsCompanion.insert(
+      babyId: babyId,
+      type: type,
+      startTime: now,
+      status: const Value(0), // 进行中
+      notes: notes != null ? Value(notes) : const Value.absent(),
+    );
+
+    return await into(activityRecords).insert(companion);
+  }
+
+  /// 创建进行中活动（带详细字段）
+  ///
+  /// 创建一个新的活动记录，状态为进行中（status=0），支持传入所有详细字段
+  Future<int> createOngoingActivityWithDetails({
+    required int babyId,
+    required int type,
+    required DateTime startTime,
+    int? eatingMethod,
+    int? breastSide,
+    int? breastDurationMinutes,
+    int? formulaAmountMl,
+    String? foodType,
+    int? sleepQuality,
+    int? sleepLocation,
+    int? sleepAssistMethod,
+    int? activityType,
+    int? mood,
+    int? diaperType,
+    int? stoolColor,
+    int? stoolTexture,
+    String? notes,
+  }) async {
+    final companion = ActivityRecordsCompanion.insert(
+      babyId: babyId,
+      type: type,
+      startTime: startTime,
+      status: const Value(0), // 进行中
+      notes: notes != null ? Value(notes) : const Value.absent(),
+      eatingMethod: eatingMethod != null ? Value(eatingMethod) : const Value.absent(),
+      breastSide: breastSide != null ? Value(breastSide) : const Value.absent(),
+      breastDurationMinutes: breastDurationMinutes != null
+          ? Value(breastDurationMinutes)
+          : const Value.absent(),
+      formulaAmountMl:
+          formulaAmountMl != null ? Value(formulaAmountMl) : const Value.absent(),
+      foodType: foodType != null ? Value(foodType) : const Value.absent(),
+      sleepQuality: sleepQuality != null ? Value(sleepQuality) : const Value.absent(),
+      sleepLocation:
+          sleepLocation != null ? Value(sleepLocation) : const Value.absent(),
+      sleepAssistMethod: sleepAssistMethod != null
+          ? Value(sleepAssistMethod)
+          : const Value.absent(),
+      activityType:
+          activityType != null ? Value(activityType) : const Value.absent(),
+      mood: mood != null ? Value(mood) : const Value.absent(),
+      diaperType: diaperType != null ? Value(diaperType) : const Value.absent(),
+      stoolColor: stoolColor != null ? Value(stoolColor) : const Value.absent(),
+      stoolTexture:
+          stoolTexture != null ? Value(stoolTexture) : const Value.absent(),
+    );
+
+    return await into(activityRecords).insert(companion);
+  }
+
+  /// 获取指定宝宝的进行中活动
+  ///
+  /// 返回指定宝宝的进行中活动，如果没有则返回 null
+  Future<ActivityRecord?> getOngoingActivity(int babyId) async {
+    final query = select(activityRecords)
+      ..where((a) => a.babyId.equals(babyId))
+      ..where((a) => a.status.equals(0))
+      ..where((a) => a.isDeleted.equals(false))
+      ..orderBy([(a) => OrderingTerm.desc(a.startTime)])
+      ..limit(1);
+
+    return await query.getSingleOrNull();
+  }
+
+  /// 监听指定宝宝的进行中活动
+  ///
+  /// 返回一个 Stream，当进行中活动变化时自动通知
+  Stream<ActivityRecord?> watchOngoingActivity(int babyId) {
+    final query = select(activityRecords)
+      ..where((a) => a.babyId.equals(babyId))
+      ..where((a) => a.status.equals(0))
+      ..where((a) => a.isDeleted.equals(false))
+      ..orderBy([(a) => OrderingTerm.desc(a.startTime)])
+      ..limit(1);
+
+    return query.watchSingleOrNull();
+  }
+
+  /// 完成进行中活动
+  ///
+  /// 将进行中活动标记为已完成，设置结束时间和持续时间
+  Future<void> completeActivity(int activityId) async {
+    final now = DateTime.now();
+
+    // 获取当前活动记录
+    final activity = await (select(activityRecords)
+          ..where((a) => a.id.equals(activityId)))
+        .getSingle();
+
+    // 计算持续时间
+    final durationSeconds = now.difference(activity.startTime).inSeconds;
+
+    // 更新记录
+    await update(activityRecords).replace(
+      activity.copyWith(
+        endTime: Value(now),
+        durationSeconds: Value(durationSeconds),
+        status: 1, // 已完成
+        syncStatus: 1, // 待上传
+        version: activity.version + 1,
+      ),
+    );
+  }
+
+  /// 检查是否有进行中活动
+  ///
+  /// 返回指定宝宝是否有进行中活动
+  Future<bool> hasOngoingActivity(int babyId) async {
+    final activity = await getOngoingActivity(babyId);
+    return activity != null;
   }
 }

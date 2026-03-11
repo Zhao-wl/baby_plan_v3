@@ -81,6 +81,9 @@ class ActivityRecords extends Table {
   /// 是否已校对（用户编辑过）
   BoolColumn get isVerified => boolean().withDefault(const Constant(false))();
 
+  /// 活动状态：0=进行中、1=已完成（默认）
+  IntColumn get status => integer().withDefault(const Constant(1))();
+
   // ============ 喂养专属字段（type=0）============
 
   /// 喂养方式：0=母乳、1=奶粉、2=辅食

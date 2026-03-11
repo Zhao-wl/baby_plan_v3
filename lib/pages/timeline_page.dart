@@ -7,10 +7,12 @@ import '../database/tables/activity_records.dart';
 import '../providers/activity_data_change_provider.dart';
 import '../providers/current_baby_provider.dart';
 import '../providers/database_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../providers/timeline_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/dashboard/quick_record_sheet.dart';
+import '../widgets/timeline/activity_form_sheet.dart';
 import '../widgets/timeline/date_picker.dart';
 import '../widgets/timeline/timeline_list.dart';
 
@@ -36,13 +38,41 @@ class _TimelinePageState extends ConsumerState<TimelinePage>
   /// 当前选中的日期
   DateTime _selectedDate = DateTime.now();
 
+  /// 时间线列表的 BuildContext key
+  final GlobalKey _timelineListKey = GlobalKey();
+
+  /// 上一次的导航标签
+  NavTab? _previousTab;
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     final currentBabyState = ref.watch(currentBabyProvider);
 
+    // 监听导航状态变化
+    final navigationState = ref.watch(navigationProvider);
+    final currentTab = navigationState.currentTab;
+
+    // 当切换到时间线页面时，滚动到底部
+    if (currentTab == NavTab.timeline && _previousTab != NavTab.timeline) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_timelineListKey.currentContext != null) {
+          TimelineList.scrollToBottom(_timelineListKey.currentContext!);
+        }
+      });
+    }
+    _previousTab = currentTab;
+
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showActivityFormSheet(),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 6,
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add),
+      ),
       body: Column(
         children: [
           // 日期选择器
@@ -77,12 +107,15 @@ class _TimelinePageState extends ConsumerState<TimelinePage>
     final timelineAsync = ref.watch(timelineProvider(query));
 
     return timelineAsync.when(
-      data: (records) => TimelineList(
-        records: records,
-        onActivityTap: (record) => _onActivityTap(record),
-        onActivityLongPress: (record) => _onActivityLongPress(record),
-        onAddRecord: () => _showAddRecordSheet(),
-      ),
+      data: (records) {
+        return TimelineList(
+          key: _timelineListKey,
+          records: records,
+          onActivityTap: (record) => _onActivityTap(record),
+          onActivityLongPress: (record) => _onActivityLongPress(record),
+          onAddRecord: () => _showAddRecordSheet(),
+        );
+      },
       loading: () => const Center(
         child: CircularProgressIndicator(),
       ),
@@ -231,6 +264,11 @@ class _TimelinePageState extends ConsumerState<TimelinePage>
         );
       }
     }
+  }
+
+  /// 显示活动表单弹窗（FAB 点击）
+  void _showActivityFormSheet() {
+    ActivityFormSheet.show(context);
   }
 
   /// 显示添加记录弹窗
