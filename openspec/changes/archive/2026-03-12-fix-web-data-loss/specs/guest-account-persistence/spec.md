@@ -1,16 +1,10 @@
-# guest-account-persistence
-
-## Purpose
-
-提供游客账号的跨会话持久化能力，通过设备标识关联游客账号，确保同一设备重启应用后能恢复原有数据。
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: 游客账号通过设备标识恢复
 
 系统 SHALL 支持根据设备标识查找并恢复现有的游客账号。
 
-**设备标识作为辅助验证，优先从数据库恢复。**
+**修改点：设备标识作为辅助验证，优先从数据库恢复。**
 
 #### Scenario: 设备标识匹配恢复
 - **WHEN** 应用启动时 SharedPreferences 中的设备标识与数据库中游客用户的 `device_id` 匹配
@@ -42,7 +36,7 @@
 
 系统 SHALL 确保游客用户的设备标识在数据库中持久化存储。
 
-**数据库是设备标识的主要存储，SharedPreferences 是缓存。**
+**修改点：明确数据库是设备标识的主要存储，SharedPreferences 是缓存。**
 
 #### Scenario: 查询游客用户设备标识
 - **WHEN** 查询当前游客用户的 `device_id` 字段
