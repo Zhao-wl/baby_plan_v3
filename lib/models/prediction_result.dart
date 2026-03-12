@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'awake_stage.dart';
+import 'time_slot.dart';
+
 /// 预测类型枚举
 ///
 /// 表示可以预测的活动类型。
@@ -46,6 +49,9 @@ class PredictionResult {
     this.tips,
     this.relatedPredictions,
     this.isBasedOnAgeBenchmark = false,
+    this.timeSlot,
+    this.awakeStage,
+    this.timeSlotSampleCount = 0,
   });
 
   /// 预测类型
@@ -68,6 +74,15 @@ class PredictionResult {
 
   /// 是否基于月龄基准（而非历史数据）
   final bool isBasedOnAgeBenchmark;
+
+  /// 预测时段
+  final TimeSlot? timeSlot;
+
+  /// 睡眠阶段
+  final AwakeStage? awakeStage;
+
+  /// 时段历史样本数量
+  final int timeSlotSampleCount;
 
   /// 是否为合并预测
   bool get isMerged =>
@@ -97,6 +112,9 @@ class PredictionResult {
     String? tips,
     List<PredictionResult>? relatedPredictions,
     bool? isBasedOnAgeBenchmark,
+    TimeSlot? timeSlot,
+    AwakeStage? awakeStage,
+    int? timeSlotSampleCount,
   }) {
     return PredictionResult(
       type: type ?? this.type,
@@ -107,12 +125,15 @@ class PredictionResult {
       relatedPredictions: relatedPredictions ?? this.relatedPredictions,
       isBasedOnAgeBenchmark:
           isBasedOnAgeBenchmark ?? this.isBasedOnAgeBenchmark,
+      timeSlot: timeSlot ?? this.timeSlot,
+      awakeStage: awakeStage ?? this.awakeStage,
+      timeSlotSampleCount: timeSlotSampleCount ?? this.timeSlotSampleCount,
     );
   }
 
   @override
   String toString() {
-    return 'PredictionResult(type: $type, predictedTime: $predictedTime, confidence: $confidence)';
+    return 'PredictionResult(type: $type, predictedTime: $predictedTime, confidence: $confidence, timeSlot: $timeSlot, awakeStage: $awakeStage)';
   }
 }
 
@@ -128,6 +149,8 @@ class PredictionState {
     this.isNightMode = false,
     this.ongoingActivityType,
     this.hasInsufficientData = false,
+    this.timeSlot,
+    this.awakeStage,
   });
 
   /// 当前预测结果（可能为空）
@@ -140,6 +163,7 @@ class PredictionState {
   final String? error;
 
   /// 是否为夜间模式（22:00-06:00）
+  /// 注意：夜间模式不再禁用预测，仅用于 UI 显示调整
   final bool isNightMode;
 
   /// 进行中的活动类型
@@ -148,11 +172,20 @@ class PredictionState {
   /// 历史数据是否不足
   final bool hasInsufficientData;
 
+  /// 当前时段
+  final TimeSlot? timeSlot;
+
+  /// 当前睡眠阶段
+  final AwakeStage? awakeStage;
+
   /// 是否有可用预测
   bool get hasPrediction => prediction != null;
 
   /// 是否有进行中的活动
   bool get hasOngoingActivity => ongoingActivityType != null;
+
+  /// 是否有睡眠阶段信息
+  bool get hasAwakeStage => awakeStage != null;
 
   /// 复制并修改
   PredictionState copyWith({
@@ -162,6 +195,8 @@ class PredictionState {
     bool? isNightMode,
     int? ongoingActivityType,
     bool? hasInsufficientData,
+    TimeSlot? timeSlot,
+    AwakeStage? awakeStage,
   }) {
     return PredictionState(
       prediction: prediction ?? this.prediction,
@@ -170,11 +205,13 @@ class PredictionState {
       isNightMode: isNightMode ?? this.isNightMode,
       ongoingActivityType: ongoingActivityType,
       hasInsufficientData: hasInsufficientData ?? this.hasInsufficientData,
+      timeSlot: timeSlot ?? this.timeSlot,
+      awakeStage: awakeStage ?? this.awakeStage,
     );
   }
 
   @override
   String toString() {
-    return 'PredictionState(hasPrediction: $hasPrediction, isLoading: $isLoading, isNightMode: $isNightMode)';
+    return 'PredictionState(hasPrediction: $hasPrediction, isLoading: $isLoading, timeSlot: $timeSlot, awakeStage: $awakeStage)';
   }
 }

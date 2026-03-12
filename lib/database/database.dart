@@ -14,6 +14,8 @@ import 'tables/vaccine_library.dart';
 import 'tables/vaccine_records.dart';
 import 'tables/age_benchmark_data.dart';
 import 'tables/age_activity_patterns.dart';
+import '../models/time_slot.dart';
+import '../models/time_slot_pattern.dart';
 
 part 'database.g.dart';
 
@@ -41,6 +43,16 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 6;
+
+  /// 分时段基准数据缓存
+  ///
+  /// 存储 JSON 中解析出的时段特定基准数据。
+  /// Key: "${week}_${activityType}", Value: ActivityPatternBenchmark
+  final Map<String, ActivityPatternBenchmark> _timeSlotBenchmarkCache = {};
+
+  /// 获取分时段基准数据缓存
+  Map<String, ActivityPatternBenchmark> get timeSlotBenchmarkCache =>
+      _timeSlotBenchmarkCache;
 
   @override
   MigrationStrategy get migration {
@@ -486,6 +498,7 @@ class AppDatabase extends _$AppDatabase {
   /// 从 JSON 文件加载月龄活动模式数据到数据库
   ///
   /// 仅在数据库为空或版本更新时执行加载。
+  /// 支持 v1（无时段）和 v2（分时段）两种 JSON 格式。
   /// 返回是否执行了加载操作。
   Future<bool> loadAgeActivityPatternsFromJson() async {
     try {
@@ -507,7 +520,8 @@ class AppDatabase extends _$AppDatabase {
         final currentVersion = existingRecords.first.dataVersion;
 
         if (currentVersion >= version) {
-          // 数据已是最新，无需加载
+          // 数据已是最新，但仍需加载时段缓存
+          _loadTimeSlotCache(patterns, version);
           return false;
         }
 
@@ -515,19 +529,31 @@ class AppDatabase extends _$AppDatabase {
         await delete(ageActivityPatterns).go();
       }
 
+      // 清空旧缓存
+      _timeSlotBenchmarkCache.clear();
+
       // 批量插入新数据
       await batch((batch) {
         for (final patternJson in patterns) {
+          // 解析基准数据（支持 v1 和 v2 格式）
+          final benchmark = ActivityPatternBenchmark.fromJson(
+            patternJson as Map<String, dynamic>,
+          );
+
+          // 缓存分时段数据
+          final cacheKey = '${benchmark.week}_${benchmark.activityType}';
+          _timeSlotBenchmarkCache[cacheKey] = benchmark;
+
+          // 存储全局数据到数据库（向后兼容）
           batch.insert(
             ageActivityPatterns,
             AgeActivityPatternsCompanion.insert(
-              week: patternJson['week'] as int,
-              activityType: patternJson['activityType'] as int,
-              intervalMinutes: patternJson['intervalMinutes'] as int,
-              durationMinutes:
-                  Value(patternJson['durationMinutes'] as int?),
-              countPerDay: patternJson['countPerDay'] as int,
-              notes: Value(patternJson['notes'] as String?),
+              week: benchmark.week,
+              activityType: benchmark.activityType,
+              intervalMinutes: benchmark.globalInterval ?? 180,
+              durationMinutes: Value(benchmark.globalDuration),
+              countPerDay: benchmark.globalCountPerDay ?? 5,
+              notes: const Value(null),
               dataVersion: Value(version),
             ),
           );
@@ -540,6 +566,69 @@ class AppDatabase extends _$AppDatabase {
       print('加载月龄活动模式数据失败: $e');
       return false;
     }
+  }
+
+  /// 加载时段缓存（不更新数据库）
+  void _loadTimeSlotCache(List<dynamic> patterns, int version) {
+    _timeSlotBenchmarkCache.clear();
+    for (final patternJson in patterns) {
+      final benchmark = ActivityPatternBenchmark.fromJson(
+        patternJson as Map<String, dynamic>,
+      );
+      final cacheKey = '${benchmark.week}_${benchmark.activityType}';
+      _timeSlotBenchmarkCache[cacheKey] = benchmark;
+    }
+  }
+
+  /// 获取分时段基准数据
+  ///
+  /// 返回指定周龄和活动类型的完整基准数据（包含时段信息）。
+  ActivityPatternBenchmark? getTimeSlotBenchmark(int week, int activityType) {
+    // 先尝试精确匹配
+    final exactKey = '${week}_$activityType';
+    if (_timeSlotBenchmarkCache.containsKey(exactKey)) {
+      return _timeSlotBenchmarkCache[exactKey];
+    }
+
+    // 如果没有精确匹配，找到最近的周龄
+    int? nearestWeek;
+    for (final key in _timeSlotBenchmarkCache.keys) {
+      final keyParts = key.split('_');
+      final keyWeek = int.parse(keyParts[0]);
+      final keyActivityType = int.parse(keyParts[1]);
+
+      if (keyActivityType == activityType && keyWeek < week) {
+        if (nearestWeek == null || keyWeek > nearestWeek) {
+          nearestWeek = keyWeek;
+        }
+      }
+    }
+
+    if (nearestWeek != null) {
+      return _timeSlotBenchmarkCache['${nearestWeek}_$activityType'];
+    }
+
+    return null;
+  }
+
+  /// 获取指定时段的基准数据
+  ///
+  /// 返回指定周龄、活动类型和时段的基准间隔和持续时间。
+  /// 如果没有时段特定数据，回退到全局基准。
+  ({int? interval, int? duration}) getTimeSlotBenchmarkData(
+    int week,
+    int activityType,
+    TimeSlot timeSlot,
+  ) {
+    final benchmark = getTimeSlotBenchmark(week, activityType);
+    if (benchmark == null) {
+      return (interval: null, duration: null);
+    }
+
+    return (
+      interval: benchmark.getIntervalForSlot(timeSlot),
+      duration: benchmark.getDurationForSlot(timeSlot),
+    );
   }
 
   /// 获取指定周龄的活动模式
@@ -581,5 +670,112 @@ class AppDatabase extends _$AppDatabase {
         .get();
 
     return patterns.isNotEmpty ? patterns.first : null;
+  }
+
+  // ========== 时段历史数据查询 ==========
+
+  /// 获取指定时段的活动记录
+  ///
+  /// 查询最近 [days] 天内，在指定时段发生的活动记录。
+  /// 时段边界附近（±30分钟）的活动会有权重调整。
+  Future<List<ActivityRecord>> getTimeSlotActivities(
+    int babyId,
+    int activityType,
+    TimeSlot timeSlot, {
+    int days = 14,
+  }) async {
+    final now = DateTime.now();
+    final startDate = now.subtract(Duration(days: days));
+
+    // 获取该类型的所有活动
+    final allActivities = await (select(activityRecords)
+          ..where((a) => a.babyId.equals(babyId))
+          ..where((a) => a.type.equals(activityType))
+          ..where((a) => a.isDeleted.equals(false))
+          ..where((a) => a.status.equals(1)) // 已完成
+          ..where((a) => a.startTime.isBiggerOrEqualValue(startDate))
+          ..orderBy([(a) => OrderingTerm.desc(a.startTime)]))
+        .get();
+
+    // 过滤出属于该时段的活动
+    return allActivities.where((activity) {
+      return _isActivityInTimeSlot(activity.startTime, timeSlot);
+    }).toList();
+  }
+
+  /// 检查活动是否属于指定时段
+  bool _isActivityInTimeSlot(DateTime activityTime, TimeSlot timeSlot) {
+    final activitySlot = TimeSlot.fromDateTime(activityTime);
+    return activitySlot == timeSlot;
+  }
+
+  /// 获取带边界权重的时段活动
+  ///
+  /// 返回活动列表及其对指定时段的权重（0.0-1.0）。
+  /// 边界附近的活动贡献给相邻两个时段。
+  List<({ActivityRecord activity, double weight})> getTimeSlotActivitiesWithWeight(
+    List<ActivityRecord> activities,
+    TimeSlot timeSlot,
+  ) {
+    final result = <({ActivityRecord activity, double weight})>[];
+
+    for (final activity in activities) {
+      final activitySlot = TimeSlot.fromDateTime(activity.startTime);
+      final hour = activity.startTime.hour;
+      final minute = activity.startTime.minute;
+
+      if (activitySlot == timeSlot) {
+        // 检查是否在时段边界附近
+        if (timeSlot.isNearBoundary(hour, minute)) {
+          // 边界活动权重 0.5
+          result.add((activity: activity, weight: 0.5));
+        } else {
+          // 正常活动权重 1.0
+          result.add((activity: activity, weight: 1.0));
+        }
+      } else if (activitySlot == timeSlot.previous ||
+                 activitySlot == timeSlot.next) {
+        // 相邻时段的活动，如果在边界附近，也贡献权重
+        if (activitySlot.isNearBoundary(hour, minute)) {
+          result.add((activity: activity, weight: 0.5));
+        }
+      }
+    }
+
+    return result;
+  }
+
+  // ========== 睡眠维度查询 ==========
+
+  /// 获取最近一次已完成的睡眠活动
+  ///
+  /// 返回宝宝最近一次完成的睡眠记录，用于计算睡眠阶段。
+  Future<ActivityRecord?> getLastCompletedSleep(int babyId) async {
+    final now = DateTime.now();
+
+    return (select(activityRecords)
+          ..where((a) => a.babyId.equals(babyId))
+          ..where((a) => a.type.equals(2)) // 睡眠类型
+          ..where((a) => a.isDeleted.equals(false))
+          ..where((a) => a.status.equals(1)) // 已完成
+          ..where((a) => a.endTime.isNotNull())
+          ..where((a) => a.endTime.isSmallerOrEqualValue(now))
+          ..orderBy([(a) => OrderingTerm.desc(a.endTime)])
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  /// 获取当前进行中的睡眠活动
+  ///
+  /// 返回宝宝当前正在进行的睡眠记录（如果有）。
+  Future<ActivityRecord?> getOngoingSleep(int babyId) async {
+    return (select(activityRecords)
+          ..where((a) => a.babyId.equals(babyId))
+          ..where((a) => a.type.equals(2)) // 睡眠类型
+          ..where((a) => a.isDeleted.equals(false))
+          ..where((a) => a.status.equals(0)) // 进行中
+          ..orderBy([(a) => OrderingTerm.desc(a.startTime)])
+          ..limit(1))
+        .getSingleOrNull();
   }
 }
