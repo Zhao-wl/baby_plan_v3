@@ -23,8 +23,8 @@ class TimelineActivityCard extends StatefulWidget {
   /// 点击回调
   final VoidCallback? onTap;
 
-  /// 删除回调
-  final VoidCallback? onDelete;
+  /// 删除回调 - 返回 Future 以支持动画完成后再刷新数据
+  final Future<void> Function()? onDelete;
 
   /// 是否显示跨天标记
   final bool showCrossDayLabel;
@@ -286,7 +286,10 @@ class _TimelineActivityCardState extends State<TimelineActivityCard>
     );
 
     if (confirmed == true) {
-      widget.onDelete!();
+      // 先收起滑动状态
+      _resetSwipe();
+      // 等待删除动画完成
+      await widget.onDelete!();
     }
   }
 
@@ -305,7 +308,7 @@ class _TimelineActivityCardState extends State<TimelineActivityCard>
     final details = _getActivityDetailsText();
 
     return Stack(
-      clipBehavior: Clip.none,
+      clipBehavior: Clip.hardEdge,
       children: [
         // 底层：删除按钮
         Positioned.fill(

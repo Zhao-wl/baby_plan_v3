@@ -103,6 +103,7 @@ class TimerState {
 ///
 /// 初始化时优先从数据库恢复进行中活动状态，再用 SharedPreferences 补充暂停状态。
 /// 使用 ref.listen 监听 currentBabyIdProvider 变化，确保页面刷新后正确恢复状态。
+/// 同时监听 activityDataChangeProvider，当活动被外部删除时自动清除计时状态。
 class TimerNotifier extends AsyncNotifier<TimerState> {
   @override
   Future<TimerState> build() async {
@@ -114,9 +115,39 @@ class TimerNotifier extends AsyncNotifier<TimerState> {
       }
     });
 
+    // 监听活动数据变化，当进行中活动被外部删除时清除计时状态
+    ref.listen<int>(activityDataChangeProvider, (previous, next) {
+      _checkAndSyncWithDatabase();
+    });
+
     // 获取当前宝宝 ID
     final babyId = ref.read(currentBabyIdProvider);
     return _loadTimerStateFromDb(babyId);
+  }
+
+  /// 检查并同步数据库状态
+  ///
+  /// 当活动数据变化时（如从时间线删除进行中活动），检查当前计时状态是否仍然有效。
+  /// 如果数据库中的进行中活动已被删除，则清除计时状态。
+  Future<void> _checkAndSyncWithDatabase() async {
+    final currentState = _currentState;
+    if (currentState == null || !currentState.isTiming) {
+      return;
+    }
+
+    final babyId = _currentBabyId;
+    if (babyId == null) {
+      return;
+    }
+
+    // 检查数据库中是否还有对应的进行中活动
+    final db = ref.read(databaseProvider);
+    final ongoingActivity = await db.getOngoingActivity(babyId);
+
+    // 如果没有进行中活动，或者进行中活动的 ID 与当前计时的不匹配，清除计时状态
+    if (ongoingActivity == null || ongoingActivity.id != currentState.currentRecordId) {
+      await _clearState();
+    }
   }
 
   /// 从数据库加载计时器状态

@@ -75,3 +75,59 @@
 #### Scenario: 新增记录后自动滚动
 - **WHEN** 用户在时间线页面新增一条活动记录
 - **THEN** 系统 SHALL 自动滚动到新记录位置
+
+### Requirement: 列表项删除动画
+
+系统 SHALL 在删除活动记录时提供平滑的动画效果，确保用户体验流畅。
+
+#### Scenario: 删除动画执行
+- **WHEN** 用户确认删除一条活动记录
+- **THEN** 系统 SHALL 执行删除动画
+- **AND** 被删除的卡片 SHALL 以淡出+收缩动画消失
+- **AND** 下方卡片 SHALL 平滑上移填补空白
+- **AND** 动画时长 SHALL 在 250-350ms 范围内
+- **AND** 动画曲线 SHALL 使用 easeInOut 或类似平滑曲线
+
+#### Scenario: 上方卡片保持位置
+- **WHEN** 删除动画执行过程中
+- **THEN** 位于被删除项上方的卡片 SHALL 保持位置不变
+
+#### Scenario: 动画完成后数据更新
+- **WHEN** 删除动画完成
+- **THEN** 系统 SHALL 更新数据源并从列表中移除该记录
+
+#### Scenario: 滑动删除触发动画
+- **WHEN** 用户在活动卡片上左滑并确认删除
+- **THEN** 系统 SHALL 先收起滑动状态
+- **AND** 然后执行删除动画
+
+### Requirement: 删除操作完成后触发全局通知
+
+系统 SHALL 在删除动画完成后触发全局数据变化通知，确保其他组件实时更新。
+
+#### Scenario: 删除动画完成后通知
+- **WHEN** 用户在时间线列表中删除一条活动记录
+- **AND** 删除动画完成
+- **AND** 数据库软删除操作成功
+- **THEN** 系统 SHALL 触发 `activityDataChangeProvider` 通知
+- **AND** 首页、统计页面等依赖组件实时刷新
+
+#### Scenario: 删除失败不触发通知
+- **WHEN** 数据库软删除操作失败
+- **THEN** 系统 SHALL NOT 触发数据变化通知
+- **AND** 显示错误提示
+- **AND** 本地状态恢复（如果已更新）
+
+### Requirement: 删除操作正确写入数据库
+
+系统 SHALL 确保删除操作正确执行数据库软删除。
+
+#### Scenario: 软删除成功
+- **WHEN** 删除操作执行
+- **THEN** 系统 SHALL 将记录的 `isDeleted` 设为 `true`
+- **AND** 将 `deletedAt` 设为当前时间
+- **AND** 将 `syncStatus` 设为 `1`（待上传）
+
+#### Scenario: 已删除记录不在列表显示
+- **WHEN** 时间线查询活动记录
+- **THEN** 系统 SHALL 过滤掉 `isDeleted = true` 的记录
