@@ -222,6 +222,11 @@ class TimerNotifier extends AsyncNotifier<TimerState> {
   ///
   /// [activityType] 活动类型
   /// 返回是否成功开始计时
+  ///
+  /// 在创建新活动前，会先检查是否有进行中活动：
+  /// - 如果新活动开始时间 > 进行中活动开始时间，自动结束进行中活动
+  /// - 如果新活动开始时间 <= 进行中活动开始时间，不结束进行中活动（保持数据一致性）
+  /// 确保每个宝宝同时只有一条进行中活动。
   Future<bool> start(ActivityType activityType) async {
     // 验证当前宝宝存在
     final babyId = _currentBabyId;
@@ -229,10 +234,14 @@ class TimerNotifier extends AsyncNotifier<TimerState> {
       return false;
     }
 
+    final db = ref.read(databaseProvider);
     final now = DateTime.now();
 
+    // 先强制结束该宝宝开始时间早于当前时间的进行中活动
+    // 这确保了只有新活动开始时间 > 进行中活动开始时间时才结束
+    await db.forceEndOngoingActivities(babyId, beforeStartTime: now);
+
     // 创建"进行中"的活动记录（status=0）
-    final db = ref.read(databaseProvider);
     final recordId = await db.createOngoingActivity(
       babyId: babyId,
       type: activityType.value,
@@ -290,21 +299,17 @@ class TimerNotifier extends AsyncNotifier<TimerState> {
     final endTime = DateTime.now();
 
     if (currentState.currentRecordId != null) {
-      // 更新现有记录
-      final existing = await (db.select(db.activityRecords)
-        ..where((t) => t.id.equals(currentState.currentRecordId!)))
-          .getSingleOrNull();
-      if (existing != null) {
-        await (db.update(db.activityRecords)).write(
-          ActivityRecordsCompanion(
-            id: Value(existing.id),
-            endTime: Value(endTime),
-            durationSeconds: Value(duration.inSeconds),
-            status: const Value(1), // 已完成
-            syncStatus: const Value(1), // 标记为待上传
-          ),
-        );
-      }
+      // 更新现有记录（使用级联操作符 ..where 指定记录）
+      await (db.update(db.activityRecords)
+            ..where((t) => t.id.equals(currentState.currentRecordId!)))
+          .write(
+            ActivityRecordsCompanion(
+              endTime: Value(endTime),
+              durationSeconds: Value(duration.inSeconds),
+              status: const Value(1), // 已完成
+              syncStatus: const Value(1), // 标记为待上传
+            ),
+          );
     } else {
       // 兼容：如果没有记录ID，创建新记录
       await db.into(db.activityRecords).insert(

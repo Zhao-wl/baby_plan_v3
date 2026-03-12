@@ -266,6 +266,53 @@ class AppDatabase extends _$AppDatabase {
     return activity != null;
   }
 
+  /// 强制结束指定宝宝的所有进行中活动
+  ///
+  /// 将指定宝宝的所有进行中活动标记为已完成，设置结束时间为当前时间。
+  /// 这确保了每个宝宝同时只有一条进行中活动。
+  /// 使用事务保证操作的原子性。
+  ///
+  /// [babyId] 宝宝 ID
+  /// [beforeStartTime] 可选参数，只结束开始时间早于此时间的活动
+  /// 返回被结束的活动数量。
+  Future<int> forceEndOngoingActivities(int babyId, {DateTime? beforeStartTime}) async {
+    return await transaction(() async {
+      final now = DateTime.now();
+
+      // 构建查询
+      var query = select(activityRecords)
+        ..where((a) => a.babyId.equals(babyId))
+        ..where((a) => a.status.equals(0))
+        ..where((a) => a.isDeleted.equals(false));
+
+      // 如果指定了 beforeStartTime，只查询开始时间早于该时间的活动
+      if (beforeStartTime != null) {
+        query = query..where((a) => a.startTime.isSmallerThanValue(beforeStartTime));
+      }
+
+      final ongoingActivities = await query.get();
+
+      if (ongoingActivities.isEmpty) {
+        return 0;
+      }
+
+      // 批量更新所有进行中活动为已完成
+      for (final activity in ongoingActivities) {
+        final durationSeconds = now.difference(activity.startTime).inSeconds;
+        await (update(activityRecords)..where((a) => a.id.equals(activity.id))).write(
+          ActivityRecordsCompanion(
+            endTime: Value(now),
+            durationSeconds: Value(durationSeconds),
+            status: const Value(1), // 已完成
+            syncStatus: const Value(1), // 待上传
+          ),
+        );
+      }
+
+      return ongoingActivities.length;
+    });
+  }
+
   // ========== 疫苗库数据管理 ==========
 
   /// 从 JSON 文件加载疫苗库数据到数据库
