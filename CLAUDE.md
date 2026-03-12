@@ -250,7 +250,82 @@ lib/
     timeline_provider.dart      # 时间线数据
     stats_provider.dart         # 统计数据
     sync_provider.dart          # 同步状态
+    prediction_provider.dart    # 智能预测状态
 ```
+
+### 智能预测引擎
+
+应用提供时段感知的活动预测功能，帮助父母了解宝宝的下一步活动需求。
+
+#### 时段划分
+
+系统将一天划分为 5 个固定时段：
+
+| 时段 | 时间范围 | 特点 |
+|------|----------|------|
+| 早晨 (morning) | 06:00-09:00 | 刚醒来，吃奶需求高 |
+| 上午 (forenoon) | 09:00-12:00 | 活动期 |
+| 下午 (afternoon) | 12:00-18:00 | 最长时段，包含午睡 |
+| 傍晚 (evening) | 18:00-22:00 | 睡前准备期 |
+| 夜间 (night) | 22:00-06:00 | 长觉期，间隔拉长 |
+
+#### 睡眠阶段划分
+
+基于"距离上次睡眠结束的时间"划分三个阶段：
+
+| 阶段 | 时间范围 | 行为特点 |
+|------|----------|----------|
+| 刚醒期 (awake-early) | 0-2小时 | 吃奶需求高 |
+| 活动期 (awake-mid) | 2-4小时 | 活动时间，排泄增多 |
+| 疲劳期 (awake-late) | 4+小时 | 即将入睡，睡眠预测置信度高 |
+
+#### 三元加权融合算法
+
+预测算法使用三元加权融合：
+
+```
+if (时段样本 >= 3):
+    预测 = 时段历史 × 0.4 + 全天历史 × 0.3 + 月龄基准 × 0.3
+elif (时段样本 >= 1):
+    预测 = 时段历史 × 0.2 + 全天历史 × 0.5 + 月龄基准 × 0.3
+else:
+    预测 = 全天历史 × 0.7 + 月龄基准 × 0.3
+```
+
+#### 核心文件
+
+```
+lib/
+  models/
+    time_slot.dart           # 时段枚举定义
+    awake_stage.dart         # 睡眠阶段枚举定义
+    prediction_result.dart   # 预测结果数据类
+    time_slot_pattern.dart   # 时段模式数据类
+  services/
+    prediction_service.dart  # 预测服务（核心算法）
+  providers/
+    prediction_provider.dart # 预测状态管理
+assets/
+  data/
+    age_activity_patterns.json # 月龄基准数据（v2 格式）
+```
+
+#### 预测结果字段
+
+`PredictionResult` 包含：
+- `type`: 预测类型（吃/睡/排泄）
+- `predictedTime`: 预测时间
+- `confidence`: 置信度 (0.0-1.0)
+- `timeSlot`: 预测时段
+- `awakeStage`: 当前睡眠阶段
+- `isBasedOnAgeBenchmark`: 是否基于月龄基准
+
+#### 夜间预测
+
+夜间时段（22:00-06:00）提供预测，帮助用户培养规律作息：
+- 显示"夜间长觉"相关提示
+- 提供夜奶时间建议
+- 支持作息培养指导
 
 ### Dependencies
 

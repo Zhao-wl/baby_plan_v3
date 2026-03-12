@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/awake_stage.dart';
 import '../models/prediction_result.dart';
+import '../models/time_slot.dart';
 import '../services/prediction_service.dart';
 import 'activity_data_change_provider.dart';
 import 'current_baby_provider.dart';
@@ -38,10 +40,28 @@ final processedPredictionsProvider =
   return ProcessedPredictionsNotifier();
 });
 
+/// 最后一次睡眠信息 Provider
+///
+/// 返回最近一次已完成睡眠的结束时间，用于计算睡眠阶段。
+final lastSleepProvider = FutureProvider<DateTime?>((ref) async {
+  final currentBabyState = ref.watch(currentBabyProvider);
+  final baby = currentBabyState.baby;
+
+  if (baby == null) {
+    return null;
+  }
+
+  final db = ref.watch(databaseProvider);
+  final lastSleep = await db.getLastCompletedSleep(baby.id);
+
+  return lastSleep?.endTime;
+});
+
 /// 预测 Provider
 ///
 /// 提供当前宝宝的下一项活动预测。
 /// 监听活动数据变化，自动重新计算预测。
+/// 支持时段感知和睡眠阶段维度。
 final predictionProvider =
     FutureProvider<PredictionResult?>((ref) async {
   // 监听活动数据变化
@@ -63,12 +83,16 @@ final predictionProvider =
     ongoingActivityProvider(baby.id).future,
   );
 
+  // 获取最后一次睡眠结束时间
+  final lastSleepEndTime = await ref.watch(lastSleepProvider.future);
+
   // 获取预测
   final predictionService = ref.watch(predictionServiceProvider);
   final prediction = await predictionService.getPrediction(
     babyId: baby.id,
     ageWeeks: ageWeeks,
     ongoingActivityType: ongoingActivity?.type,
+    lastSleepEndTime: lastSleepEndTime,
   );
 
   // 检查是否已被标记为已处理
@@ -86,31 +110,37 @@ final predictionProvider =
 
 /// 预测状态 Provider
 ///
-/// 提供完整的预测状态，包括夜间模式、数据不足等信息。
+/// 提供完整的预测状态，包括时段信息、睡眠阶段等。
+/// 注意：夜间模式不再禁用预测，仅用于 UI 显示调整。
 final predictionStateProvider =
     FutureProvider<PredictionState>((ref) async {
-  // 检查夜间模式
-  final isNightMode = _isNightMode();
+  // 获取当前时段
+  final currentTimeSlot = TimeSlot.fromDateTime(DateTime.now());
 
-  if (isNightMode) {
-    return const PredictionState(
-      isNightMode: true,
-      prediction: null,
-    );
-  }
+  // 检查夜间模式（用于 UI 显示调整，不阻止预测）
+  final isNightMode = currentTimeSlot.isNight;
 
   // 获取当前宝宝
   final currentBabyState = ref.watch(currentBabyProvider);
   final baby = currentBabyState.baby;
 
   if (baby == null) {
-    return const PredictionState();
+    return PredictionState(
+      timeSlot: currentTimeSlot,
+      isNightMode: isNightMode,
+    );
   }
 
   // 获取进行中的活动
   final ongoingActivity = await ref.watch(
     ongoingActivityProvider(baby.id).future,
   );
+
+  // 获取最后一次睡眠结束时间，计算睡眠阶段
+  final lastSleepEndTime = await ref.watch(lastSleepProvider.future);
+  final awakeStage = lastSleepEndTime != null
+      ? AwakeStage.fromSleepEndTime(lastSleepEndTime)
+      : null;
 
   // 获取预测
   final prediction = await ref.watch(predictionProvider.future);
@@ -121,9 +151,11 @@ final predictionStateProvider =
   return PredictionState(
     prediction: prediction,
     isLoading: false,
-    isNightMode: false,
+    isNightMode: isNightMode,
     ongoingActivityType: ongoingActivity?.type,
     hasInsufficientData: hasInsufficientData,
+    timeSlot: currentTimeSlot,
+    awakeStage: awakeStage,
   );
 });
 
@@ -147,12 +179,6 @@ int _calculateAgeInWeeks(DateTime birthDate) {
   final now = DateTime.now();
   final difference = now.difference(birthDate);
   return (difference.inDays / 7).floor();
-}
-
-/// 检查是否为夜间模式（22:00-06:00）
-bool _isNightMode() {
-  final hour = DateTime.now().hour;
-  return hour >= 22 || hour < 6;
 }
 
 /// 生成预测的唯一标识

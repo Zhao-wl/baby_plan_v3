@@ -143,8 +143,8 @@ void main() {
   });
 
   group('PredictionService constants', () {
-    test('historyWindowDays is 7', () {
-      expect(PredictionService.historyWindowDays, equals(7));
+    test('historyWindowDays is 14 (extended for time slot samples)', () {
+      expect(PredictionService.historyWindowDays, equals(14));
     });
 
     test('mergeWindowMinutes is 15', () {
@@ -155,17 +155,36 @@ void main() {
       expect(PredictionService.minHistoryRecords, equals(5));
     });
 
-    test('historyWeight is 0.7', () {
-      expect(PredictionService.historyWeight, equals(0.7));
+    test('timeSlotMinSamples is 3', () {
+      expect(PredictionService.timeSlotMinSamples, equals(3));
+    });
+
+    test('timeSlotWeightHigh is 0.4', () {
+      expect(PredictionService.timeSlotWeightHigh, equals(0.4));
+    });
+
+    test('globalHistoryWeightHigh is 0.3', () {
+      expect(PredictionService.globalHistoryWeightHigh, equals(0.3));
     });
 
     test('benchmarkWeight is 0.3', () {
       expect(PredictionService.benchmarkWeight, equals(0.3));
     });
 
-    test('weights sum to 1.0', () {
+    test('weights sum to 1.0 for high samples case', () {
       expect(
-        PredictionService.historyWeight + PredictionService.benchmarkWeight,
+        PredictionService.timeSlotWeightHigh +
+            PredictionService.globalHistoryWeightHigh +
+            PredictionService.benchmarkWeight,
+        equals(1.0),
+      );
+    });
+
+    test('weights sum to 1.0 for low samples case', () {
+      expect(
+        PredictionService.timeSlotWeightLow +
+            PredictionService.globalHistoryWeightLow +
+            PredictionService.benchmarkWeight,
         equals(1.0),
       );
     });

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../models/awake_stage.dart';
 import '../../models/prediction_result.dart';
+import '../../models/time_slot.dart';
 import '../../providers/providers.dart';
 
 /// 智能预测卡片组件
@@ -63,11 +65,9 @@ class SmartPredictionCard extends ConsumerWidget {
         // 标题区域
         _buildHeader(context, state),
         const Spacer(),
-        // 预测内容
-        if (state.isNightMode)
-          _buildNightModeContent(context)
-        else if (state.hasPrediction)
-          _buildPredictionContent(context, ref, state.prediction!)
+        // 预测内容 - 夜间也显示预测，帮助用户培养规律作息
+        if (state.hasPrediction)
+          _buildPredictionContent(context, ref, state)
         else if (state.hasInsufficientData)
           _buildInsufficientDataContent(context, ref)
         else
@@ -102,9 +102,48 @@ class SmartPredictionCard extends ConsumerWidget {
           ),
         ),
         const Spacer(),
+        // 显示时段标签
+        if (state.timeSlot != null) _buildTimeSlotBadge(state.timeSlot!),
         if (state.hasPrediction && state.prediction!.isBasedOnAgeBenchmark)
           _buildAgeBenchmarkBadge(),
       ],
+    );
+  }
+
+  /// 构建时段标签
+  Widget _buildTimeSlotBadge(TimeSlot timeSlot) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: timeSlot.isNight
+            ? Colors.indigo.shade100
+            : Colors.purple.shade50,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            timeSlot.isNight ? Icons.bedtime : Icons.wb_sunny,
+            size: 12,
+            color: timeSlot.isNight
+                ? Colors.indigo.shade600
+                : Colors.purple.shade600,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${timeSlot.label}时段',
+            style: TextStyle(
+              fontSize: 11,
+              color: timeSlot.isNight
+                  ? Colors.indigo.shade700
+                  : Colors.purple.shade700,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -131,8 +170,12 @@ class SmartPredictionCard extends ConsumerWidget {
   Widget _buildPredictionContent(
     BuildContext context,
     WidgetRef ref,
-    PredictionResult prediction,
+    PredictionState state,
   ) {
+    final prediction = state.prediction!;
+    final timeSlot = state.timeSlot;
+    final awakeStage = state.awakeStage;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -184,17 +227,30 @@ class SmartPredictionCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      prediction.description,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF334155), // slate-700
-                      ),
+                    // 主描述 + 睡眠阶段标签
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            prediction.description,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF334155), // slate-700
+                            ),
+                          ),
+                        ),
+                        // 显示睡眠阶段标签
+                        if (awakeStage != null) ...[
+                          const SizedBox(width: 8),
+                          _buildAwakeStageBadge(awakeStage),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 4),
+                    // 提示信息 - 根据时段和睡眠阶段生成
                     Text(
-                      prediction.primaryTip,
+                      _buildContextualTip(prediction, timeSlot, awakeStage),
                       style: const TextStyle(
                         fontSize: 13,
                         color: Color(0xFF64748B), // slate-500
@@ -231,6 +287,141 @@ class SmartPredictionCard extends ConsumerWidget {
     );
   }
 
+  /// 构建睡眠阶段标签
+  Widget _buildAwakeStageBadge(AwakeStage awakeStage) {
+    final color = switch (awakeStage) {
+      AwakeStage.awakeEarly => Colors.green,
+      AwakeStage.awakeMid => Colors.orange,
+      AwakeStage.awakeLate => Colors.red,
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.shade200, width: 1),
+      ),
+      child: Text(
+        awakeStage.label,
+        style: TextStyle(
+          fontSize: 10,
+          color: color.shade700,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  /// 根据时段和睡眠阶段生成上下文提示
+  String _buildContextualTip(
+    PredictionResult prediction,
+    TimeSlot? timeSlot,
+    AwakeStage? awakeStage,
+  ) {
+    // 如果有自定义提示且不是通用提示，使用自定义提示
+    if (prediction.tips != null &&
+        prediction.tips!.isNotEmpty &&
+        prediction.tips != prediction.type.defaultTip) {
+      return prediction.tips!;
+    }
+
+    final tips = <String>[];
+
+    // 根据时段生成提示
+    if (timeSlot != null) {
+      switch (timeSlot) {
+        case TimeSlot.night:
+          tips.addAll(_buildNightTips(prediction));
+          break;
+        case TimeSlot.evening:
+          tips.addAll(_buildEveningTips(prediction));
+          break;
+        case TimeSlot.morning:
+          tips.addAll(_buildMorningTips(prediction, awakeStage));
+          break;
+        default:
+          // 其他时段使用默认提示
+          break;
+      }
+    }
+
+    // 根据睡眠阶段补充提示
+    if (awakeStage != null) {
+      switch (awakeStage) {
+        case AwakeStage.awakeEarly:
+          if (prediction.type == PredictionType.eat) {
+            tips.add('刚醒来，可能需要喂奶');
+          }
+          break;
+        case AwakeStage.awakeMid:
+          if (prediction.type == PredictionType.poop) {
+            tips.add('活动期，排泄可能增多');
+          }
+          break;
+        case AwakeStage.awakeLate:
+          if (prediction.type == PredictionType.sleep) {
+            tips.add('宝宝疲劳，建议安排小睡');
+          }
+          break;
+      }
+    }
+
+    // 如果没有特殊提示，使用默认提示
+    if (tips.isEmpty) {
+      return prediction.primaryTip;
+    }
+
+    return tips.first;
+  }
+
+  /// 构建夜间时段提示
+  List<String> _buildNightTips(PredictionResult prediction) {
+    switch (prediction.type) {
+      case PredictionType.sleep:
+        final hours = prediction.predictedTime.hour;
+        // 如果是夜间入睡
+        if (hours >= 22 || hours < 6) {
+          return ['夜间长觉，预计睡眠较长'];
+        }
+        return ['夜间小睡'];
+      case PredictionType.eat:
+        return ['如需夜奶，注意保持安静'];
+      case PredictionType.poop:
+        return ['夜间排泄，轻柔处理'];
+    }
+  }
+
+  /// 构建傍晚时段提示
+  List<String> _buildEveningTips(PredictionResult prediction) {
+    switch (prediction.type) {
+      case PredictionType.eat:
+        return ['睡前喂奶，帮助宝宝安睡'];
+      case PredictionType.sleep:
+        return ['傍晚小睡，不宜过长'];
+      case PredictionType.poop:
+        return [prediction.primaryTip];
+    }
+  }
+
+  /// 构建早晨时段提示
+  List<String> _buildMorningTips(
+    PredictionResult prediction,
+    AwakeStage? awakeStage,
+  ) {
+    switch (prediction.type) {
+      case PredictionType.eat:
+        if (awakeStage == AwakeStage.awakeEarly) {
+          return ['刚醒来，可能需要喂奶'];
+        }
+        return ['早晨喂奶'];
+      case PredictionType.sleep:
+        return ['晨间小睡'];
+      case PredictionType.poop:
+        return [prediction.primaryTip];
+    }
+  }
+
   /// 构建关联预测提示
   String _buildRelatedPredictionTip(PredictionResult prediction) {
     if (prediction.relatedPredictions == null ||
@@ -242,50 +433,6 @@ class SmartPredictionCard extends ConsumerWidget {
         .map((p) => p.type.label)
         .join('、');
     return '同时可能：$relatedTypes';
-  }
-
-  /// 构建夜间模式内容
-  Widget _buildNightModeContent(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.bedtime,
-            color: Colors.purple.shade400,
-            size: 32,
-          ),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '宝宝安睡中',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF334155),
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  '夜间不打扰，让宝宝好好休息',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   /// 构建数据不足引导内容
