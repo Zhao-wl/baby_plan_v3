@@ -194,45 +194,37 @@ class _TimelinePageState extends ConsumerState<TimelinePage>
   }
 
   /// 删除记录
+  ///
+  /// 此方法负责更新数据库并触发全局数据变化通知。
+  /// TimelineList 组件会在本地处理删除动画和状态更新，动画完成后才调用此方法。
+  ///
+  /// 成功时显示提示，失败时重新抛出异常以便 TimelineList 回滚本地状态。
   Future<void> _deleteRecord(ActivityRecord record) async {
-    try {
-      final db = ref.read(databaseProvider);
-      await db.update(db.activityRecords).replace(
-            record.copyWith(
-              isDeleted: true,
-              deletedAt: drift.Value(DateTime.now()),
-              syncStatus: 1, // 标记为待上传
-            ),
-          );
+    final db = ref.read(databaseProvider);
 
-      // 刷新时间线数据
-      final babyId = ref.read(currentBabyProvider).baby?.id;
-      if (babyId != null) {
-        // 触发全局数据变化通知
-        ref.read(activityDataChangeProvider.notifier).notify();
-        ref.invalidate(timelineProvider(
-          TimelineQuery(babyId: babyId, date: _selectedDate),
-        ));
-      }
+    // 使用 write 方法进行部分更新（比 replace 更高效）
+    await (db.update(db.activityRecords)
+          ..where((t) => t.id.equals(record.id)))
+        .write(
+      ActivityRecordsCompanion(
+        isDeleted: const drift.Value(true),
+        deletedAt: drift.Value(DateTime.now()),
+        syncStatus: const drift.Value(1), // 标记为待上传
+        updatedAt: drift.Value(DateTime.now()),
+      ),
+    );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('记录已删除'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('删除失败: $e'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    // 触发全局数据变化通知
+    // 此时本地动画已完成，通知不会打断动画
+    ref.read(activityDataChangeProvider.notifier).notify();
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('记录已删除'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 

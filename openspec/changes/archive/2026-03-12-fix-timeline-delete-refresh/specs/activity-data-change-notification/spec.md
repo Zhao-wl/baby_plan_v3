@@ -1,9 +1,4 @@
-# activity-data-change-notification Specification
-
-## Purpose
-提供全局活动数据变化通知机制，用于在插入、更新、删除活动记录时通知所有依赖的 provider 刷新。
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: 全局活动数据变化通知
 
