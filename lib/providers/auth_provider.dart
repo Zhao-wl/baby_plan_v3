@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
@@ -67,54 +68,80 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// 初始化用户：检查现有用户或创建游客用户
+  ///
+  /// 恢复优先级：
+  /// 1. 数据库中的游客账号（按创建时间降序，取最新的）
+  /// 2. 本地正式用户
+  /// 3. 创建新游客账号
   Future<void> _initializeUser() async {
     try {
       final db = ref.read(databaseProvider);
+      final deviceService = ref.read(deviceServiceProvider);
 
-      // 先获取设备标识
-      final deviceId = await ref.read(deviceServiceProvider).getDeviceId();
+      debugPrint('[AuthProvider] 开始初始化用户...');
 
-      // 先根据 deviceId 查询现有游客用户
-      final existingGuest = await (db.select(db.users)
-            ..where((u) =>
-                u.deviceId.equals(deviceId) &
-                u.isGuest.equals(true) &
-                u.isDeleted.equals(false)))
-          .getSingleOrNull();
-
-      if (existingGuest != null) {
-        // 恢复现有游客账号
-        state = AuthState(
-          currentUser: existingGuest,
-          isGuest: true,
-          isLoading: false,
-        );
-        return;
-      }
-
-      // 查询本地正式用户（排除已删除）
-      final existingUsers = await (db.select(db.users)
-            ..where((u) => u.isDeleted.equals(false) & u.isGuest.equals(false)))
+      // 1. 优先从数据库查询游客账号（按创建时间降序）
+      // 这是解决 Web 平台数据丢失的关键：IndexedDB 跨会话持久，而 localStorage 可能因 origin 变化而丢失
+      final guestUsers = await (db.select(db.users)
+            ..where((u) => u.isGuest.equals(true) & u.isDeleted.equals(false))
+            ..orderBy([(u) => OrderingTerm.desc(u.createdAt)]))
           .get();
 
-      if (existingUsers.isNotEmpty) {
-        // 使用现有正式用户
-        final user = existingUsers.first;
-        state = AuthState(
-          currentUser: user,
-          isGuest: user.isGuest,
-          isLoading: false,
-        );
-      } else {
-        // 创建新的游客用户，关联 deviceId
-        final guestUser = await _createGuestUser(db, deviceId);
+      debugPrint('[AuthProvider] 查询到 ${guestUsers.length} 个游客账号');
+      for (final u in guestUsers) {
+        debugPrint('[AuthProvider] 游客账号: id=${u.id}, nickname=${u.nickname}, deviceId=${u.deviceId}, createdAt=${u.createdAt}');
+      }
+
+      if (guestUsers.isNotEmpty) {
+        // 恢复最新的游客账号
+        final guestUser = guestUsers.first;
+        debugPrint('[AuthProvider] 恢复游客账号: id=${guestUser.id}');
         state = AuthState(
           currentUser: guestUser,
           isGuest: true,
           isLoading: false,
         );
+
+        // 同步设备标识：如果游客账号有 deviceId，确保 SharedPreferences 也同步
+        if (guestUser.deviceId != null) {
+          await deviceService.setDeviceId(guestUser.deviceId!);
+          debugPrint('[AuthProvider] 已同步设备标识到 SharedPreferences: ${guestUser.deviceId}');
+        }
+
+        return;
       }
-    } catch (e) {
+
+      // 2. 查询本地正式用户（排除已删除）
+      final existingUsers = await (db.select(db.users)
+            ..where((u) => u.isDeleted.equals(false) & u.isGuest.equals(false)))
+          .get();
+
+      debugPrint('[AuthProvider] 查询到 ${existingUsers.length} 个正式用户');
+
+      if (existingUsers.isNotEmpty) {
+        // 使用现有正式用户
+        final user = existingUsers.first;
+        debugPrint('[AuthProvider] 使用正式用户: id=${user.id}');
+        state = AuthState(
+          currentUser: user,
+          isGuest: user.isGuest,
+          isLoading: false,
+        );
+        return;
+      }
+
+      // 3. 创建新的游客用户，关联 deviceId
+      final deviceId = await deviceService.getDeviceId();
+      debugPrint('[AuthProvider] 创建新游客账号，deviceId=$deviceId');
+      final guestUser = await _createGuestUser(db, deviceId);
+      state = AuthState(
+        currentUser: guestUser,
+        isGuest: true,
+        isLoading: false,
+      );
+    } catch (e, stack) {
+      debugPrint('[AuthProvider] 初始化用户失败: $e');
+      debugPrint('[AuthProvider] 堆栈: $stack');
       state = AuthState(
         isLoading: false,
         errorMessage: '初始化用户失败: $e',

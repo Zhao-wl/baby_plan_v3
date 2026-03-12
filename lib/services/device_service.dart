@@ -62,4 +62,13 @@ class DeviceService {
     _cachedDeviceId = newDeviceId;
     return newDeviceId;
   }
+
+  /// 设置指定的设备标识
+  ///
+  /// 用于从数据库恢复设备标识到 SharedPreferences。
+  Future<void> setDeviceId(String deviceId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_deviceIdKey, deviceId);
+    _cachedDeviceId = deviceId;
+  }
 }
