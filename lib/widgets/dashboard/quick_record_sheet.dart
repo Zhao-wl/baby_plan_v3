@@ -7,6 +7,7 @@ import 'package:baby_plan_v3/providers/current_baby_provider.dart';
 import 'package:baby_plan_v3/providers/database_provider.dart';
 import 'package:baby_plan_v3/providers/timeline_provider.dart';
 import 'package:baby_plan_v3/providers/stats_provider.dart';
+import 'package:baby_plan_v3/providers/timer_provider.dart';
 import 'package:baby_plan_v3/widgets/common/half_screen_sheet.dart';
 import 'package:baby_plan_v3/widgets/common/form_fields.dart';
 import 'package:baby_plan_v3/theme/app_spacing.dart';
@@ -237,6 +238,33 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
     final db = ref.read(databaseProvider);
 
     try {
+      // 检查是否有进行中活动
+      final ongoingActivity = await db.getOngoingActivity(currentBaby.id);
+
+      if (ongoingActivity != null) {
+        // 如果进行中活动的开始时间 >= 新活动的开始时间，显示提示
+        if (!ongoingActivity.startTime.isBefore(_startTime)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('请先结束当前进行中的活动'),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          return;
+        }
+        // 否则自动结束进行中活动（开始时间早于新活动）
+        await db.forceEndOngoingActivities(
+          currentBaby.id,
+          beforeStartTime: _startTime,
+        );
+      }
+
+      // 判断是否为进行中活动（没有结束时间）
+      final isOngoing = _endTime == null;
+
       await db.into(db.activityRecords).insert(
             ActivityRecordsCompanion.insert(
               babyId: currentBaby.id,
@@ -246,6 +274,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
               durationSeconds: drift.Value(
                 _endTime != null ? _endTime!.difference(_startTime).inSeconds : null,
               ),
+              status: drift.Value(isOngoing ? 0 : 1), // 0 = 进行中, 1 = 已完成
               isVerified: const drift.Value(false),
             ),
           );
@@ -253,6 +282,13 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
       if (mounted) {
         // 触发数据变化通知
         ref.read(activityDataChangeProvider.notifier).notify();
+        // 如果结束了进行中活动，或者创建了新的进行中活动，刷新计时器状态
+        if (ongoingActivity != null && ongoingActivity.startTime.isBefore(_startTime)) {
+          ref.invalidate(timerProvider);
+        } else if (isOngoing) {
+          // 创建了新的进行中活动，刷新计时器状态
+          ref.invalidate(timerProvider);
+        }
         _refreshData();
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: false);
@@ -279,6 +315,10 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
       final existing = widget.existingRecord;
       if (existing == null) return;
 
+      // 如果设置了结束时间，应该将状态设为已完成
+      final newStatus = _endTime != null ? 1 : existing.status;
+      final wasOngoing = existing.status == 0;
+
       await db.update(db.activityRecords).replace(
             existing.copyWith(
               startTime: _startTime,
@@ -286,6 +326,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
               durationSeconds: drift.Value(
                 _endTime != null ? _endTime!.difference(_startTime).inSeconds : null,
               ),
+              status: newStatus,
               syncStatus: 1, // 标记为待上传
             ),
           );
@@ -294,6 +335,12 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
         // 触发数据变化通知
         ref.read(activityDataChangeProvider.notifier).notify();
         _refreshData();
+
+        // 如果之前是进行中活动，刷新计时器状态
+        if (wasOngoing) {
+          ref.invalidate(timerProvider);
+        }
+
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: true);
       }
@@ -351,6 +398,33 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
     final db = ref.read(databaseProvider);
 
     try {
+      // 检查是否有进行中活动
+      final ongoingActivity = await db.getOngoingActivity(currentBaby.id);
+
+      if (ongoingActivity != null) {
+        // 如果进行中活动的开始时间 >= 新活动的开始时间，显示提示
+        if (!ongoingActivity.startTime.isBefore(_startTime)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('请先结束当前进行中的活动'),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          return;
+        }
+        // 否则自动结束进行中活动（开始时间早于新活动）
+        await db.forceEndOngoingActivities(
+          currentBaby.id,
+          beforeStartTime: _startTime,
+        );
+      }
+
+      // 判断是否为进行中活动（没有结束时间）
+      final isOngoing = _endTime == null;
+
       await db.into(db.activityRecords).insert(
             ActivityRecordsCompanion.insert(
               babyId: currentBaby.id,
@@ -360,6 +434,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
               durationSeconds: drift.Value(
                 _endTime != null ? _endTime!.difference(_startTime).inSeconds : null,
               ),
+              status: drift.Value(isOngoing ? 0 : 1), // 0 = 进行中, 1 = 已完成
               notes: drift.Value(_notes),
               isVerified: const drift.Value(true),
               eatingMethod: drift.Value(_eatingMethod?.value),
@@ -381,6 +456,13 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
       if (mounted) {
         // 触发数据变化通知
         ref.read(activityDataChangeProvider.notifier).notify();
+        // 如果结束了进行中活动，或者创建了新的进行中活动，刷新计时器状态
+        if (ongoingActivity != null && ongoingActivity.startTime.isBefore(_startTime)) {
+          ref.invalidate(timerProvider);
+        } else if (isOngoing) {
+          // 创建了新的进行中活动，刷新计时器状态
+          ref.invalidate(timerProvider);
+        }
         _refreshData();
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: false);
@@ -420,6 +502,10 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
       final existing = widget.existingRecord;
       if (existing == null) return;
 
+      // 如果设置了结束时间，应该将状态设为已完成
+      final newStatus = _endTime != null ? 1 : existing.status;
+      final wasOngoing = existing.status == 0;
+
       await db.update(db.activityRecords).replace(
             existing.copyWith(
               startTime: _startTime,
@@ -427,6 +513,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
               durationSeconds: drift.Value(
                 _endTime != null ? _endTime!.difference(_startTime).inSeconds : null,
               ),
+              status: newStatus,
               notes: drift.Value(_notes),
               isVerified: true,
               eatingMethod: drift.Value(_eatingMethod?.value),
@@ -450,6 +537,12 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
         // 触发数据变化通知
         ref.read(activityDataChangeProvider.notifier).notify();
         _refreshData();
+
+        // 如果之前是进行中活动，刷新计时器状态
+        if (wasOngoing) {
+          ref.invalidate(timerProvider);
+        }
+
         Navigator.of(context).pop();
         _showSuccessMessage(isUpdate: true);
       }
