@@ -329,4 +329,5 @@ import 'package:flutter_test/flutter_test.dart';
   ```
 
 - 总是用中文回答！
-- open spec的创建和修改只能在对应的WorkTree中！
+- 需要使用浏览器时，优先使用`playwright-cli`技能
+- 需要执行Git/GitHub操作时，优先使用`gh-cli`
