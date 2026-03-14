@@ -2,407 +2,105 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## 项目背景
 
-This is a **Flutter** mobile application (baby_plan_v3) - **E.A.S.Y. 育儿助手**，帮助父母记录和分析宝宝的日常活动。
+**E.A.S.Y. 育儿助手** - Flutter 移动应用，帮助父母记录和分析宝宝的日常活动（吃、玩、睡、排泄）。
 
-> **Note**: Windows desktop requires Visual Studio toolchain. Use `flutter run -d chrome` (Web) for development.
+> 开发环境优先使用 Web：`flutter run -d chrome`
 
-## Common Commands
+## 常用命令
 
 ```bash
-# Run the app (Web - default)
-flutter run -d chrome
-
-# Run on a specific platform
-flutter run -d android
-flutter run -d ios
-flutter run -d windows
-flutter run -d macos
-flutter run -d linux
-flutter run -d chrome
-
-# Run tests
-flutter test
-
-# Run a specific test file
-flutter test test/widget_test.dart
-flutter test test/database/database_test.dart
-
-# Analyze code for errors
-flutter analyze
-
-# Build for release
-flutter build apk          # Android
-flutter build ios          # iOS
-flutter build web          # Web
-flutter build windows      # Windows
-flutter build macos        # macOS
-flutter build linux        # Linux
-
-# Get dependencies
-flutter pub get
-
-# Format code
-dart format .
-
-# Code generation (run after modifying models)
-dart run build_runner build --delete-conflicting-outputs
+flutter run -d chrome          # 运行应用 (Web)
+flutter test                   # 运行测试
+flutter analyze                # 代码分析
+flutter pub get                # 获取依赖
+dart format .                  # 格式化代码
+dart run build_runner build --delete-conflicting-outputs  # 代码生成
 ```
 
-## Code Architecture
+## 技术选型
 
-### File Structure
+| 领域 | 技术 |
+|------|------|
+| 状态管理 | Riverpod (`flutter_riverpod`) |
+| 数据库 | Drift (SQLite ORM) |
+| 不可变模型 | Freezed |
+| JSON 序列化 | json_serializable |
+| 图表 | fl_chart |
+
+## 功能入口
+
+应用采用底部导航栏设计，主要页面：
+
+| 页面 | 文件 | 功能 |
+|------|------|------|
+| 首页 | `lib/pages/home/` | 今日概览、智能预测、快捷记录 |
+| 时间线 | `lib/pages/timeline/` | 按时间查看活动记录 |
+| 统计 | `lib/pages/stats/` | 日/周/月数据分析、生长曲线 |
+| 我的 | `lib/pages/profile/` | 宝宝管理、家庭设置、同步设置 |
+
+## 架构概览
 
 ```
 lib/
-  main.dart              # App entry point and root widget
-  database/
-    connection.dart      # Database connection setup
-    database.dart        # AppDatabase class with migrations
-    tables/              # Table definitions
-      users.dart         # 用户表
-      families.dart      # 家庭组表
-      family_members.dart # 家庭成员关联表
-      babies.dart        # 宝宝表
-      activity_records.dart # 活动记录表（核心）
-      growth_records.dart # 生长记录表
-      vaccine_library.dart # 疫苗库表（内置）
-      vaccine_records.dart # 接种记录表
-      age_benchmark_data.dart # 月龄基准数据表
-  providers/
-    providers.dart              # Barrel export
-    database_provider.dart      # 数据库单例
-    settings_provider.dart      # SharedPreferences 设置
-    babies_provider.dart        # 宝宝列表
+  main.dart                 # 入口
+  database/                 # Drift 数据库定义
+    database.dart           # AppDatabase + migrations
+    tables/                 # 表定义（activity_records 核心表）
+  providers/                # Riverpod 状态管理
+    database_provider.dart  # 数据库单例
     current_baby_provider.dart  # 当前宝宝状态
-    family_provider.dart        # 家庭组状态
-    timeline_provider.dart      # 时间线数据
-    stats_provider.dart         # 统计数据
-    sync_provider.dart          # 同步状态
-  services/
-    device_service.dart  # 设备标识服务
-assets/
-  data/
-    vaccine_library.json # 内置疫苗数据
-test/
-  widget_test.dart       # Basic widget test
-  database/
-    database_test.dart   # Database tests
+    timeline_provider.dart  # 时间线数据
+    stats_provider.dart     # 统计数据
+  services/                 # 业务服务
+    prediction_service.dart # 智能预测算法
+  pages/                    # 页面
+  models/                   # 数据模型
 ```
 
-### Database Schema
+### 核心数据表
 
-The app uses **Drift** (SQLite ORM) for local data persistence. Current schema version: **2**
+- **ActivityRecords**: 活动记录（吃/玩/睡/排泄），type 字段: 0=吃, 1=玩, 2=睡, 3=排泄
+- **Babies**: 宝宝信息
+- **GrowthRecords**: 生长记录
 
-#### 表结构概览
+### Provider 依赖
 
-| 表名 | 说明 | 软删除 | 同步支持 |
-|------|------|--------|----------|
-| Users | 用户账号信息 | ✓ | ✓ |
-| Families | 家庭组信息 | ✓ | ✓ |
-| FamilyMembers | 家庭成员关联 | ✓ | ✓ |
-| Babies | 宝宝基本信息 | ✓ | ✓ |
-| ActivityRecords | E.A.S.Y活动记录 | ✓ | ✓ |
-| GrowthRecords | 生长记录 | ✓ | ✓ |
-| VaccineLibrary | 疫苗库（内置只读）| ✗ | ✗ |
-| VaccineRecords | 接种记录 | ✓ | ✓ |
-| AgeBenchmarkData | 月龄基准数据 | ✗ | ✗ |
+```
+databaseProvider → currentBabyProvider → timelineProvider / statsProvider
+```
 
-#### 活动记录表 (ActivityRecords)
+Provider 层直接调用 Database，无 Repository 层。
 
-核心表，采用混合设计（公共字段 + 专属字段）：
+## 编码规范
 
-**公共字段：**
-- `id`, `babyId`, `type`, `startTime`, `endTime`, `durationSeconds`, `notes`, `isVerified`
+### const 构造函数
 
-**活动类型 (type)：**
-- 0 = Eat (吃/喂养)
-- 1 = Activity (玩/活动)
-- 2 = Sleep (睡眠)
-- 3 = Poop (排泄)
-
-**专属字段：**
-- 喂养：`eatingMethod`, `breastSide`, `breastDurationMinutes`, `formulaAmountMl`, `foodType`
-- 睡眠：`sleepQuality`, `sleepLocation`, `sleepAssistMethod`
-- 活动：`activityType`, `mood`
-- 排泄：`diaperType`, `stoolColor`, `stoolTexture`
-
-#### 同步字段
-
-需要同步的用户数据表包含以下字段：
-- `serverId` - 服务器ID
-- `deviceId` - 创建设备标识
-- `syncStatus` - 同步状态 (0=已同步, 1=待上传, 2=待下载, 3=冲突)
-- `version` - 数据版本号
-
-#### 软删除字段
-
-支持软删除的表包含以下字段：
-- `isDeleted` - 是否已删除
-- `deletedAt` - 删除时间
-
-### Database Usage
+必须使用 `const` 关键字声明编译时常量：
 
 ```dart
-// Initialize database
-final db = AppDatabase();
-
-// The database automatically creates tables on first run
-// Schema version is managed in database.dart
-
-// Don't forget to close when done
-db.close();
-```
-
-**Code Generation**: After modifying database tables, run:
-```bash
-dart run build_runner build --delete-conflicting-outputs
-```
-
-### Key Patterns
-
-- **State management**: Riverpod (`flutter_riverpod`) for reactive state management
-- **Database**: Drift (SQLite ORM) for local data persistence
-- **Immutable models**: Freezed for immutable data classes with code generation
-- **JSON serialization**: json_serializable for JSON encoding/decoding
-- **Device ID**: UUID v4 stored in SharedPreferences
-- **Testing**: Uses `flutter_test` package with `WidgetTester` for widget tests
-
-### Provider Architecture
-
-应用使用 Riverpod 进行状态管理，Provider 层直接调用 Database，不引入额外的 Repository 层。
-
-#### Provider 依赖关系
-
-```
-databaseProvider (AppDatabase 单例)
-    │
-    ├── settingsProvider (SharedPreferences 设置)
-    │       │
-    │       └── currentBabyProvider (当前宝宝状态)
-    │               │
-    │               ├── timelineProvider (时间线数据)
-    │               └── statsProvider (统计数据)
-    │
-    ├── babiesProvider (宝宝列表)
-    ├── familyProvider (家庭组信息)
-    └── syncProvider (同步状态)
-```
-
-#### 核心 Provider
-
-| Provider | 类型 | 说明 |
-|----------|------|------|
-| `databaseProvider` | `Provider<AppDatabase>` | 数据库单例，自动管理生命周期 |
-| `settingsProvider` | `NotifierProvider<SettingsNotifier, AsyncValue<Settings>>` | 应用设置（当前宝宝ID、上次同步时间） |
-| `babiesProvider` | `StreamProvider<List<Baby>>` | 宝宝列表（实时更新） |
-| `currentBabyProvider` | `NotifierProvider<CurrentBabyNotifier, CurrentBabyState>` | 当前选中的宝宝 |
-| `familyProvider` | `StreamProvider<Family?>` | 当前家庭组信息 |
-| `timelineProvider` | `FutureProvider.family<List<ActivityRecord>, TimelineQuery>` | 时间线数据（按日期查询） |
-| `statsProvider` | `FutureProvider.family<StatsData, StatsQuery>` | 统计数据（日/周/月） |
-| `syncProvider` | `NotifierProvider<SyncNotifier, SyncState>` | 同步状态管理 |
-
-#### Provider 使用示例
-
-```dart
-// 在 Widget 中使用 Provider
-class BabyListWidget extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final babiesAsync = ref.watch(babiesProvider);
-
-    return babiesAsync.when(
-      data: (babies) => ListView.builder(
-        itemCount: babies.length,
-        itemBuilder: (context, index) => ListTile(title: Text(babies[index].name)),
-      ),
-      loading: () => CircularProgressIndicator(),
-      error: (err, stack) => Text('Error: $err'),
-    );
-  }
-}
-
-// 选择当前宝宝
-await ref.read(currentBabyProvider.notifier).selectBaby(baby);
-
-// 查询今日时间线
-final timeline = await ref.read(timelineProvider(TimelineQuery(
-  babyId: 1,
-  date: DateTime.now(),
-)).future);
-
-// 获取今日统计
-final stats = await ref.read(todayStatsProvider(1).future);
-```
-
-#### 文件结构
-
-```
-lib/
-  providers/
-    providers.dart              # Barrel export
-    database_provider.dart      # 数据库单例
-    settings_provider.dart      # SharedPreferences 设置
-    babies_provider.dart        # 宝宝列表
-    current_baby_provider.dart  # 当前宝宝状态
-    family_provider.dart        # 家庭组状态
-    timeline_provider.dart      # 时间线数据
-    stats_provider.dart         # 统计数据
-    sync_provider.dart          # 同步状态
-    prediction_provider.dart    # 智能预测状态
-```
-
-### 智能预测引擎
-
-应用提供时段感知的活动预测功能，帮助父母了解宝宝的下一步活动需求。
-
-#### 时段划分
-
-系统将一天划分为 5 个固定时段：
-
-| 时段 | 时间范围 | 特点 |
-|------|----------|------|
-| 早晨 (morning) | 06:00-09:00 | 刚醒来，吃奶需求高 |
-| 上午 (forenoon) | 09:00-12:00 | 活动期 |
-| 下午 (afternoon) | 12:00-18:00 | 最长时段，包含午睡 |
-| 傍晚 (evening) | 18:00-22:00 | 睡前准备期 |
-| 夜间 (night) | 22:00-06:00 | 长觉期，间隔拉长 |
-
-#### 睡眠阶段划分
-
-基于"距离上次睡眠结束的时间"划分三个阶段：
-
-| 阶段 | 时间范围 | 行为特点 |
-|------|----------|----------|
-| 刚醒期 (awake-early) | 0-2小时 | 吃奶需求高 |
-| 活动期 (awake-mid) | 2-4小时 | 活动时间，排泄增多 |
-| 疲劳期 (awake-late) | 4+小时 | 即将入睡，睡眠预测置信度高 |
-
-#### 三元加权融合算法
-
-预测算法使用三元加权融合：
-
-```
-if (时段样本 >= 3):
-    预测 = 时段历史 × 0.4 + 全天历史 × 0.3 + 月龄基准 × 0.3
-elif (时段样本 >= 1):
-    预测 = 时段历史 × 0.2 + 全天历史 × 0.5 + 月龄基准 × 0.3
-else:
-    预测 = 全天历史 × 0.7 + 月龄基准 × 0.3
-```
-
-#### 核心文件
-
-```
-lib/
-  models/
-    time_slot.dart           # 时段枚举定义
-    awake_stage.dart         # 睡眠阶段枚举定义
-    prediction_result.dart   # 预测结果数据类
-    time_slot_pattern.dart   # 时段模式数据类
-  services/
-    prediction_service.dart  # 预测服务（核心算法）
-  providers/
-    prediction_provider.dart # 预测状态管理
-assets/
-  data/
-    age_activity_patterns.json # 月龄基准数据（v2 格式）
-```
-
-#### 预测结果字段
-
-`PredictionResult` 包含：
-- `type`: 预测类型（吃/睡/排泄）
-- `predictedTime`: 预测时间
-- `confidence`: 置信度 (0.0-1.0)
-- `timeSlot`: 预测时段
-- `awakeStage`: 当前睡眠阶段
-- `isBasedOnAgeBenchmark`: 是否基于月龄基准
-
-#### 夜间预测
-
-夜间时段（22:00-06:00）提供预测，帮助用户培养规律作息：
-- 显示"夜间长觉"相关提示
-- 提供夜奶时间建议
-- 支持作息培养指导
-
-### Dependencies
-
-#### Core Dependencies
-- `flutter` (SDK) - core framework
-- `cupertino_icons` - iOS-style icons
-- `flutter_riverpod` - state management
-- `drift` + `drift_flutter` - SQLite ORM database
-- `fl_chart` - charts and graphs
-- `freezed_annotation` - immutable data class annotations
-- `json_annotation` - JSON serialization annotations
-- `flutter_skill` - MCP Server SDK for AI-driven automation
-- `uuid` - UUID generation for device identifiers
-- `shared_preferences` - persistent key-value storage
-
-#### Development Dependencies
-- `flutter_test` - testing framework
-- `flutter_lints` - code analysis (see `analysis_options.yaml`)
-- `build_runner` - code generation runner
-- `drift_dev` - Drift code generator
-- `freezed` - Freezed code generator
-- `json_serializable` - JSON serialization generator
-
-### Analysis
-
-Code uses `flutter_lints` preset with additional rules (see `analysis_options.yaml`):
-- `avoid_print: warning`
-- `prefer_const_constructors: warning`
-- `prefer_const_declarations: warning`
-- `avoid_relative_lib_imports: error`
-- `always_declare_return_types: warning`
-
-Run `flutter analyze` to check for issues.
-
-#### 编码规范
-
-**1. 使用 const 构造函数 (`prefer_const_constructors`)**
-
-对于编译时常量的 Widget，必须使用 `const` 关键字：
-
-```dart
-// ✓ 正确
-const Text('平台: Web')
+const Text('文本')
 const SizedBox(height: 8)
-const EdgeInsets.all(16.0)
-
-// ✗ 错误
-Text('平台: Web')
-SizedBox(height: 8)
-EdgeInsets.all(16.0)
 ```
 
-特别注意：
-- `kIsWeb` 是编译时常量，不需要在运行时判断，编译时会自动选择正确的分支
-- 所有子元素都是 const 的 Widget 父级也应该是 const
-- 使用 `const` 可以提升性能，避免不必要的 Widget 重建
+### 避免重复导入
 
-**2. 避免不必要的导入 (`unnecessary_import`)**
-
-不要导入已经通过其他包导出的内容：
+`flutter_test` 已包含 `matcher`，无需额外导入。使用 `drift` 时需 `hide isNotNull` 避免冲突：
 
 ```dart
-// ✗ 错误 - flutter_test 已经导出了 matcher
-import 'package:flutter_test/flutter_test.dart';
-import 'package:matcher/matcher.dart';  // 不需要
-
-// ✓ 正确
-import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/drift.dart' hide isNotNull;
 ```
 
-常见情况：
-- `flutter_test` 已包含 `matcher` 库的内容
-- 如果需要使用 `isNotNull` 等 matcher，可以从 `drift` 导入时使用 `hide` 避免冲突：
-  ```dart
-  import 'package:drift/drift.dart' hide isNotNull;
-  ```
+### 分析规则
 
-- 总是用中文回答！
-- 需要使用浏览器时，优先使用`playwright-cli`技能
-- 需要执行Git/GitHub操作时，优先使用`gh-cli`
+- `prefer_const_constructors: warning`
+- `avoid_relative_lib_imports: error`
+- `avoid_print: warning`
+
+## 注意事项
+
+- **始终用中文回答**
+- 使用浏览器时，优先使用 `playwright-cli` 技能
+- Git/GitHub 操作优先使用 `gh-cli` 技能
+- 修改数据库表后必须运行 `build_runner`
