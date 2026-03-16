@@ -1,9 +1,6 @@
-# smart-prediction-card Specification
+# smart-prediction-card Delta Specification
 
-## Purpose
-首页智能预测卡片组件，基于预测引擎显示宝宝的下一项活动预测。
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: 显示智能预测卡片
 
@@ -52,31 +49,3 @@
 #### Scenario: 无预测状态
 - **WHEN** 没有可用的预测结果
 - **THEN** 显示引导文字"记录更多活动，解锁智能预测"
-
-### Requirement: 预测卡片交互
-
-系统 SHALL 提供预测卡片的交互功能。
-
-#### Scenario: 标记预测为已处理
-- **WHEN** 用户点击预测卡片的确认按钮
-- **THEN** 系统将该预测标记为已处理
-- **AND** 预测卡片更新为下一个预测
-
-#### Scenario: 点击预测卡片查看详情
-- **WHEN** 用户点击预测卡片内容区域
-- **THEN** 系统显示预测详情
-- **AND** 详情包含：预测依据、置信度、建议
-
-### Requirement: 预测卡片响应系统状态
-
-系统 SHALL 根据系统状态调整预测卡片显示。
-
-#### Scenario: 夜间模式
-- **WHEN** 当前时间在22:00-06:00之间
-- **THEN** 预测卡片显示"宝宝安睡中"
-- **AND** 不显示具体预测
-
-#### Scenario: 进行中活动
-- **WHEN** 宝宝有进行中的活动
-- **THEN** 预测卡片显示当前活动状态
-- **AND** 预测显示为醒后的预测

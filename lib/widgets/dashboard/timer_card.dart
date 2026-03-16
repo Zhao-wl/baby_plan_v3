@@ -29,28 +29,28 @@ _ActivityConfig _getActivityConfig(ActivityType type) {
       return const _ActivityConfig(
         label: '吃奶',
         icon: Icons.restaurant,
-        color: AppColors.eat,
+        color: AppColors.eatSoft, // 使用淡化色
         lightColor: AppColors.eatLight,
       );
     case ActivityType.activity:
       return const _ActivityConfig(
         label: '玩耍',
         icon: Icons.sentiment_satisfied_alt,
-        color: AppColors.activity,
+        color: AppColors.activitySoft, // 使用淡化色
         lightColor: AppColors.activityLight,
       );
     case ActivityType.sleep:
       return const _ActivityConfig(
         label: '睡眠',
         icon: Icons.nightlight_round,
-        color: AppColors.sleep,
+        color: AppColors.sleepSoft, // 使用淡化色
         lightColor: AppColors.sleepLight,
       );
     case ActivityType.poop:
       return const _ActivityConfig(
         label: '便便',
         icon: Icons.water_drop,
-        color: AppColors.poop,
+        color: AppColors.poopSoft, // 使用淡化色
         lightColor: AppColors.poopLight,
       );
   }
@@ -63,6 +63,10 @@ _ActivityConfig _getActivityConfig(ActivityType type) {
 /// - 活动类型标签
 /// - 控制按钮（暂停/继续、结束、取消）
 /// - 空闲状态引导提示
+///
+/// 特点：
+/// - 内容自适应高度，不使用固定百分比
+/// - 简洁视觉风格，无呼吸动画
 class TimerCard extends ConsumerStatefulWidget {
   const TimerCard({super.key});
 
@@ -70,38 +74,18 @@ class TimerCard extends ConsumerStatefulWidget {
   ConsumerState<TimerCard> createState() => _TimerCardState();
 }
 
-class _TimerCardState extends ConsumerState<TimerCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _breathController;
-  late Animation<double> _breathAnimation;
+class _TimerCardState extends ConsumerState<TimerCard> {
   Timer? _updateTimer;
   Duration _displayDuration = Duration.zero;
 
   @override
   void initState() {
     super.initState();
-
-    // 呼吸动画：3秒周期，无限循环
-    _breathController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3000),
-    )..repeat(reverse: true);
-
-    _breathAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _breathController,
-      curve: Curves.easeInOut,
-    ));
-
-    // 每秒更新时间显示
     _startTimer();
   }
 
   @override
   void dispose() {
-    _breathController.dispose();
     _updateTimer?.cancel();
     super.dispose();
   }
@@ -128,18 +112,9 @@ class _TimerCardState extends ConsumerState<TimerCard>
   @override
   Widget build(BuildContext context) {
     final timerAsync = ref.watch(timerProvider);
-    final screenHeight = MediaQuery.of(context).size.height;
-    final cardHeight = screenHeight * 0.28; // 28% 屏幕高度
 
     return timerAsync.when(
       data: (timerState) {
-        // 根据计时状态决定是否显示呼吸动画
-        if (!timerState.isTiming || timerState.isPaused) {
-          _breathController.stop();
-        } else {
-          _breathController.repeat(reverse: true);
-        }
-
         // 获取活动配置
         final activityConfig = timerState.activityType != null
             ? _getActivityConfig(timerState.activityType!)
@@ -147,119 +122,61 @@ class _TimerCardState extends ConsumerState<TimerCard>
 
         return Container(
           width: double.infinity,
-          height: cardHeight,
+          constraints: const BoxConstraints(minHeight: 140),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: activityConfig != null
-                  ? [
-                      activityConfig.lightColor,
-                      activityConfig.lightColor.withValues(alpha: 0.7),
-                    ]
-                  : [
-                      const Color(0xFFE3F2FD), // blue-50
-                      const Color(0xFFE8EAF6), // indigo-50
-                    ],
-            ),
-            borderRadius: BorderRadius.circular(32),
+            color: activityConfig?.lightColor ?? Colors.white,
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: activityConfig?.color.withValues(alpha: 0.3) ??
-                  const Color(0xFFBBDEFB).withValues(alpha: 0.5),
+                  const Color(0xFFE2E8F0), // slate-200
               width: 1,
             ),
           ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // 呼吸波纹动效（仅在计时时显示）
-              if (timerState.isTiming && !timerState.isPaused)
-                _buildBreathingRipples(cardHeight, activityConfig!.color),
-
-              // 内容区域
-              timerState.isTiming
-                  ? _buildTimingContent(context, timerState, activityConfig!)
-                  : _buildIdleContent(context),
-            ],
-          ),
+          child: timerState.isTiming
+              ? _buildTimingContent(context, timerState, activityConfig!)
+              : _buildIdleContent(context),
         );
       },
       loading: () => Container(
         width: double.infinity,
-        height: cardHeight,
+        constraints: const BoxConstraints(minHeight: 140),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFE3F2FD), // blue-50
-              Color(0xFFE8EAF6), // indigo-50
-            ],
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: const Color(0xFFE2E8F0), // slate-200
+            width: 1,
           ),
-          borderRadius: BorderRadius.circular(32),
         ),
         child: const Center(
-          child: CircularProgressIndicator(),
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
         ),
       ),
       error: (error, stack) => Container(
         width: double.infinity,
-        height: cardHeight,
+        constraints: const BoxConstraints(minHeight: 140),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFE3F2FD), // blue-50
-              Color(0xFFE8EAF6), // indigo-50
-            ],
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: const Color(0xFFE2E8F0), // slate-200
+            width: 1,
           ),
-          borderRadius: BorderRadius.circular(32),
         ),
         child: Center(
-          child: Text('加载失败: $error'),
+          child: Text(
+            '加载失败: $error',
+            style: const TextStyle(color: Color(0xFF64748B)),
+          ),
         ),
       ),
-    );
-  }
-
-  /// 构建呼吸波纹动效
-  Widget _buildBreathingRipples(double cardHeight, Color color) {
-    final rippleSize = cardHeight * 0.6;
-
-    return AnimatedBuilder(
-      animation: _breathAnimation,
-      builder: (context, child) {
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            // 外圈波纹
-            Transform.scale(
-              scale: _breathAnimation.value,
-              child: Container(
-                width: rippleSize,
-                height: rippleSize,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            // 内圈波纹
-            Transform.scale(
-              scale: 0.85 + (_breathAnimation.value - 0.8) * 0.75,
-              child: Container(
-                width: rippleSize * 1.5,
-                height: rippleSize * 1.5,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.08),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -273,13 +190,13 @@ class _TimerCardState extends ConsumerState<TimerCard>
     _displayDuration = timerState.currentDuration;
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // 状态标签
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.6),
+            color: Colors.white.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
@@ -307,14 +224,14 @@ class _TimerCardState extends ConsumerState<TimerCard>
         Text(
           _formatDuration(_displayDuration),
           style: const TextStyle(
-            fontSize: 48,
+            fontSize: 40,
             fontWeight: FontWeight.w900,
             color: Color(0xFF334155), // slate-700
             letterSpacing: 4,
           ),
         ),
-        const SizedBox(height: 12),
-        // 今日累计（TODO: 需要从 statsProvider 获取）
+        const SizedBox(height: 8),
+        // 今日累计
         const Text(
           '今日累计: 0 小时 0 分钟',
           style: TextStyle(
@@ -322,7 +239,7 @@ class _TimerCardState extends ConsumerState<TimerCard>
             color: Color(0xFF94A3B8), // slate-400
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         // 控制按钮
         _buildControlButtons(context, timerState, config),
       ],
@@ -351,17 +268,17 @@ class _TimerCardState extends ConsumerState<TimerCard>
             }
           },
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         // 结束按钮
         _ControlButton(
           icon: Icons.stop,
           label: '结束',
-          color: Colors.green,
+          color: AppColors.primary, // Teal
           onPressed: () async {
             await ref.read(timerProvider.notifier).stop();
           },
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         // 取消按钮
         _ControlButton(
           icon: Icons.close,
@@ -378,26 +295,26 @@ class _TimerCardState extends ConsumerState<TimerCard>
   /// 构建空闲状态内容
   Widget _buildIdleContent(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // 状态标签
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.6),
+            color: Colors.white.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Icons.nightlight_round,
+                Icons.touch_app_outlined,
                 size: 18,
                 color: Colors.indigo.shade500,
               ),
               const SizedBox(width: 8),
               Text(
-                '点击开始计时',
+                '点击下方按钮开始计时',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -412,13 +329,13 @@ class _TimerCardState extends ConsumerState<TimerCard>
         const Text(
           '00:00:00',
           style: TextStyle(
-            fontSize: 48,
+            fontSize: 40,
             fontWeight: FontWeight.w900,
             color: Color(0xFF334155), // slate-700
             letterSpacing: 4,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         // 今日统计
         const Text(
           '今日累计: 0 小时 0 分钟',
@@ -477,7 +394,7 @@ class _ControlButton extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: color.withValues(alpha: 0.3),
+                      color: color.withValues(alpha: 0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),

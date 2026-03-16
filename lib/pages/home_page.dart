@@ -9,8 +9,9 @@ import '../widgets/dashboard/timer_card.dart';
 
 /// 首页 Dashboard
 ///
-/// 展示当前宝宝的基本信息、计时器占位、智能预测和最近活动。
-/// 快捷操作台悬浮在底部导航上方。
+/// 展示当前宝宝的基本信息、智能预测、计时器和最近活动。
+/// 快捷操作台嵌入在页面内容流中。
+/// 布局顺序：宝宝信息 → 智能预测 → 计时器 → 快捷按钮 → 最近记录
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -27,65 +28,44 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    // 获取底部导航栏高度（NavigationBar 默认高度约 80px）
-    const bottomNavHeight = kBottomNavigationBarHeight;
-    // 快捷操作台高度 + 间距
-    const actionBarSpace = 120.0;
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: () async {
+          // TODO: 添加刷新逻辑
+          await Future.delayed(const Duration(seconds: 1));
+        },
+        child: const SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 游客状态提示栏
+              GuestStatusBar(),
+              SizedBox(height: 12),
 
-    return Stack(
-      children: [
-        // 主内容区域
-        SafeArea(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              // TODO: 添加刷新逻辑
-              await Future.delayed(const Duration(seconds: 1));
-            },
-            child: const SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
-              // 底部留出足够空间给快捷操作台 + 底部导航栏
-              padding: EdgeInsets.fromLTRB(
-                16.0,
-                16.0,
-                16.0,
-                actionBarSpace + bottomNavHeight,
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 游客状态提示栏
-                  GuestStatusBar(),
-                  SizedBox(height: 16),
+              // 宝宝信息卡片
+              BabyInfoCard(),
+              SizedBox(height: 12),
 
-                  // 宝宝信息卡片
-                  BabyInfoCard(),
-                  SizedBox(height: 16),
+              // 智能预测卡片
+              SmartPredictionCard(),
+              SizedBox(height: 12),
 
-                  // 计时器卡片
-                  TimerCard(),
-                  SizedBox(height: 16),
+              // 计时器卡片
+              TimerCard(),
+              SizedBox(height: 12),
 
-                  // 智能预测卡片
-                  SmartPredictionCard(),
-                  SizedBox(height: 16),
+              // 快捷操作台
+              QuickActionBar(),
+              SizedBox(height: 12),
 
-                  // 最近动态列表
-                  RecentActivitiesList(limit: 2),
-                ],
-              ),
-            ),
+              // 最近动态列表
+              RecentActivitiesList(limit: 2),
+            ],
           ),
         ),
-
-        // 快捷操作台（固定在底部导航栏上方）
-        const Positioned(
-          left: 0,
-          right: 0,
-          // 紧贴底部导航栏
-          bottom: bottomNavHeight,
-          child: QuickActionBar(),
-        ),
-      ],
+      ),
     );
   }
 }

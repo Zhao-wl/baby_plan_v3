@@ -10,39 +10,26 @@ import '../../providers/providers.dart';
 ///
 /// 展示基于历史数据和月龄基准的活动预测。
 /// 包含：
-/// - 紫色到粉色渐变背景
+/// - 简洁白色背景 + Teal 强调边框
 /// - 标题区域（星星图标 + "智能预测"）
 /// - 动态预测内容
-/// - 夜间模式支持
 class SmartPredictionCard extends ConsumerWidget {
   const SmartPredictionCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 获取屏幕高度，卡片占用约22%的屏幕高度
-    final screenHeight = MediaQuery.of(context).size.height;
-    final cardHeight = screenHeight * 0.22; // 22% 屏幕高度
-
     // 监听预测状态
     final predictionStateAsync = ref.watch(predictionStateProvider);
 
     return Container(
       width: double.infinity,
-      height: cardHeight,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFF3E5F5), // purple-50
-            Color(0xFFFCE4EC), // pink-50
-          ],
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFFF8BBD9).withValues(alpha: 0.5), // pink-100
-          width: 1,
+          color: const Color(0xFF009688).withValues(alpha: 0.3), // Teal 边框
+          width: 1.5,
         ),
       ),
       child: predictionStateAsync.when(
@@ -61,10 +48,11 @@ class SmartPredictionCard extends ConsumerWidget {
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // 标题区域
         _buildHeader(context, state),
-        const Spacer(),
+        const SizedBox(height: 12),
         // 预测内容 - 夜间也显示预测，帮助用户培养规律作息
         if (state.hasPrediction)
           _buildPredictionContent(context, ref, state)
@@ -83,13 +71,13 @@ class SmartPredictionCard extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: Colors.purple.shade100,
+            color: const Color(0xFFE0F2F1), // Teal-50
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
+          child: const Icon(
             Icons.auto_awesome,
             size: 18,
-            color: Colors.purple.shade600,
+            color: Color(0xFF009688), // Teal
           ),
         ),
         const SizedBox(width: 10),
@@ -118,7 +106,7 @@ class SmartPredictionCard extends ConsumerWidget {
       decoration: BoxDecoration(
         color: timeSlot.isNight
             ? Colors.indigo.shade100
-            : Colors.purple.shade50,
+            : const Color(0xFFE0F2F1), // Teal-50
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -129,7 +117,7 @@ class SmartPredictionCard extends ConsumerWidget {
             size: 12,
             color: timeSlot.isNight
                 ? Colors.indigo.shade600
-                : Colors.purple.shade600,
+                : const Color(0xFF009688), // Teal
           ),
           const SizedBox(width: 4),
           Text(
@@ -138,7 +126,7 @@ class SmartPredictionCard extends ConsumerWidget {
               fontSize: 11,
               color: timeSlot.isNight
                   ? Colors.indigo.shade700
-                  : Colors.purple.shade700,
+                  : const Color(0xFF009688), // Teal
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -152,14 +140,14 @@ class SmartPredictionCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.purple.shade100,
+        color: const Color(0xFFE0F2F1), // Teal-50
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(
+      child: const Text(
         '根据月龄推荐',
         style: TextStyle(
           fontSize: 11,
-          color: Colors.purple.shade700,
+          color: Color(0xFF009688), // Teal
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -184,7 +172,7 @@ class SmartPredictionCard extends ConsumerWidget {
       ),
       child: Stack(
         children: [
-          // 左侧紫色竖线
+          // 左侧 Teal 竖线
           Positioned(
             left: 0,
             top: 0,
@@ -192,7 +180,7 @@ class SmartPredictionCard extends ConsumerWidget {
             child: Container(
               width: 3,
               decoration: BoxDecoration(
-                color: Colors.purple.shade400,
+                color: const Color(0xFF009688), // Teal
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -207,16 +195,16 @@ class SmartPredictionCard extends ConsumerWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.purple.shade100,
+                  color: const Color(0xFFE0F2F1), // Teal-50
                   shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: Text(
                     prediction.formattedTime,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Colors.purple.shade700,
+                      color: Color(0xFF009688), // Teal
                     ),
                   ),
                 ),
@@ -259,11 +247,11 @@ class SmartPredictionCard extends ConsumerWidget {
                     // 显示合并预测的关联提示
                     if (prediction.isMerged) ...[
                       const SizedBox(height: 2),
-                      Text(
-                        _buildRelatedPredictionTip(prediction),
+                      const Text(
+                        '同时可能：',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.purple.shade600,
+                          color: Color(0xFF009688), // Teal
                         ),
                       ),
                     ],
@@ -273,9 +261,9 @@ class SmartPredictionCard extends ConsumerWidget {
               // 确认按钮
               IconButton(
                 onPressed: () => _markAsProcessed(ref, prediction),
-                icon: Icon(
+                icon: const Icon(
                   Icons.check_circle_outline,
-                  color: Colors.purple.shade400,
+                  color: Color(0xFF009688), // Teal
                   size: 28,
                 ),
                 tooltip: '标记为已处理',
@@ -422,19 +410,6 @@ class SmartPredictionCard extends ConsumerWidget {
     }
   }
 
-  /// 构建关联预测提示
-  String _buildRelatedPredictionTip(PredictionResult prediction) {
-    if (prediction.relatedPredictions == null ||
-        prediction.relatedPredictions!.isEmpty) {
-      return '';
-    }
-
-    final relatedTypes = prediction.relatedPredictions!
-        .map((p) => p.type.label)
-        .join('、');
-    return '同时可能：$relatedTypes';
-  }
-
   /// 构建数据不足引导内容
   Widget _buildInsufficientDataContent(
     BuildContext context,
@@ -446,15 +421,15 @@ class SmartPredictionCard extends ConsumerWidget {
         color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
+      child: const Row(
         children: [
           Icon(
             Icons.info_outline,
-            color: Colors.purple.shade400,
+            color: Color(0xFF009688), // Teal
             size: 32,
           ),
-          const SizedBox(width: 14),
-          const Expanded(
+          SizedBox(width: 14),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -530,6 +505,7 @@ class SmartPredictionCard extends ConsumerWidget {
   Widget _buildLoadingContent() {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           children: [
@@ -540,7 +516,6 @@ class SmartPredictionCard extends ConsumerWidget {
             ),
           ],
         ),
-        Spacer(),
       ],
     );
   }
