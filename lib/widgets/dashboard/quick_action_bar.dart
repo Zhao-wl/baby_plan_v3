@@ -7,12 +7,13 @@ import '../../database/tables/activity_records.dart';
 import '../../providers/providers.dart';
 import '../../theme/app_colors.dart';
 import '../timeline/ongoing_activity_form_sheet.dart';
+import 'growth_record_sheet.dart';
 import 'quick_record_sheet.dart';
 
 /// 快捷操作台组件
 ///
-/// 悬浮在底部导航上方的快捷按钮区域。
-/// 包含四个操作按钮：吃奶、玩耍、睡眠、便便
+/// 嵌入页面内容流中的快捷按钮区域。
+/// 包含五个操作按钮：吃奶、玩耍、睡眠、便便、成长
 class QuickActionBar extends ConsumerStatefulWidget {
   const QuickActionBar({super.key});
 
@@ -181,6 +182,34 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
     }
   }
 
+  /// 处理成长按钮点击
+  Future<void> _handleGrowthTap() async {
+    if (!_shouldProcessTap()) return;
+
+    final currentBabyId = ref.read(currentBabyIdProvider);
+
+    // 检查是否有宝宝
+    if (currentBabyId == null) {
+      if (!_hasShownNoBabyTip && mounted) {
+        _hasShownNoBabyTip = true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('请先添加宝宝'),
+            duration: Duration(seconds: 2),
+          ),
+        ).closed.then((_) {
+          _hasShownNoBabyTip = false;
+        });
+      }
+      return;
+    }
+
+    // 显示成长记录弹窗
+    if (mounted) {
+      await GrowthRecordSheet.show(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final timerAsync = ref.watch(timerProvider);
@@ -198,95 +227,125 @@ class _QuickActionBarState extends ConsumerState<QuickActionBar> {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(32),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFFF1F5F9), // slate-100
+          color: const Color(0xFFE2E8F0), // slate-200
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _ActionButton(
-            label: '吃奶',
-            icon: Icons.restaurant,
-            color: AppColors.eat,
-            lightColor: AppColors.eatLight,
-            isActive: timerState.activityType == ActivityType.eat,
-            isPaused: timerState.isPaused,
-            isEnabled: currentBabyId != null,
-            isLongPressing: _isLongPressing[ActivityType.eat] ?? false,
-            duration: timerState.activityType == ActivityType.eat
-                ? timerState.currentDuration
-                : null,
-            onPressed: () => _handleTap(ActivityType.eat),
-            onLongPress: () => _handleLongPress(ActivityType.eat),
-            onLongPressStart: () => _handleLongPressStart(ActivityType.eat),
-            onLongPressEnd: () => _handleLongPressEnd(ActivityType.eat),
-          ),
-          _ActionButton(
-            label: '玩耍',
-            icon: Icons.sentiment_satisfied_alt,
-            color: AppColors.activity,
-            lightColor: AppColors.activityLight,
-            isActive: timerState.activityType == ActivityType.activity,
-            isPaused: timerState.isPaused,
-            isEnabled: currentBabyId != null,
-            isLongPressing: _isLongPressing[ActivityType.activity] ?? false,
-            duration: timerState.activityType == ActivityType.activity
-                ? timerState.currentDuration
-                : null,
-            onPressed: () => _handleTap(ActivityType.activity),
-            onLongPress: () => _handleLongPress(ActivityType.activity),
-            onLongPressStart: () => _handleLongPressStart(ActivityType.activity),
-            onLongPressEnd: () => _handleLongPressEnd(ActivityType.activity),
-          ),
-          _ActionButton(
-            label: '睡眠',
-            icon: Icons.nightlight_round,
-            color: AppColors.sleep,
-            lightColor: AppColors.sleepLight,
-            isActive: timerState.activityType == ActivityType.sleep,
-            isPaused: timerState.isPaused,
-            isEnabled: currentBabyId != null,
-            isLongPressing: _isLongPressing[ActivityType.sleep] ?? false,
-            duration: timerState.activityType == ActivityType.sleep
-                ? timerState.currentDuration
-                : null,
-            onPressed: () => _handleTap(ActivityType.sleep),
-            onLongPress: () => _handleLongPress(ActivityType.sleep),
-            onLongPressStart: () => _handleLongPressStart(ActivityType.sleep),
-            onLongPressEnd: () => _handleLongPressEnd(ActivityType.sleep),
-          ),
-          _ActionButton(
-            label: '便便',
-            icon: Icons.water_drop,
-            color: AppColors.poop,
-            lightColor: AppColors.poopLight,
-            isActive: timerState.activityType == ActivityType.poop,
-            isPaused: timerState.isPaused,
-            isEnabled: currentBabyId != null,
-            isLongPressing: _isLongPressing[ActivityType.poop] ?? false,
-            duration: timerState.activityType == ActivityType.poop
-                ? timerState.currentDuration
-                : null,
-            onPressed: () => _handleTap(ActivityType.poop),
-            onLongPress: () => _handleLongPress(ActivityType.poop),
-            onLongPressStart: () => _handleLongPressStart(ActivityType.poop),
-            onLongPressEnd: () => _handleLongPressEnd(ActivityType.poop),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // 计算每个按钮的宽度：总宽度 / 5
+          final buttonWidth = (constraints.maxWidth - 24) / 5; // 减去左右 padding
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              SizedBox(
+                width: buttonWidth,
+                child: _ActionButton(
+                  label: '吃奶',
+                  icon: Icons.restaurant,
+                  color: AppColors.eat,
+                  lightColor: AppColors.eatLight,
+                  isActive: timerState.activityType == ActivityType.eat,
+                  isPaused: timerState.isPaused,
+                  isEnabled: currentBabyId != null,
+                  isLongPressing: _isLongPressing[ActivityType.eat] ?? false,
+                  duration: timerState.activityType == ActivityType.eat
+                      ? timerState.currentDuration
+                      : null,
+                  onPressed: () => _handleTap(ActivityType.eat),
+                  onLongPress: () => _handleLongPress(ActivityType.eat),
+                  onLongPressStart: () => _handleLongPressStart(ActivityType.eat),
+                  onLongPressEnd: () => _handleLongPressEnd(ActivityType.eat),
+                ),
+              ),
+              SizedBox(
+                width: buttonWidth,
+                child: _ActionButton(
+                  label: '玩耍',
+                  icon: Icons.sentiment_satisfied_alt,
+                  color: AppColors.activity,
+                  lightColor: AppColors.activityLight,
+                  isActive: timerState.activityType == ActivityType.activity,
+                  isPaused: timerState.isPaused,
+                  isEnabled: currentBabyId != null,
+                  isLongPressing: _isLongPressing[ActivityType.activity] ?? false,
+                  duration: timerState.activityType == ActivityType.activity
+                      ? timerState.currentDuration
+                      : null,
+                  onPressed: () => _handleTap(ActivityType.activity),
+                  onLongPress: () => _handleLongPress(ActivityType.activity),
+                  onLongPressStart: () => _handleLongPressStart(ActivityType.activity),
+                  onLongPressEnd: () => _handleLongPressEnd(ActivityType.activity),
+                ),
+              ),
+              SizedBox(
+                width: buttonWidth,
+                child: _ActionButton(
+                  label: '睡眠',
+                  icon: Icons.nightlight_round,
+                  color: AppColors.sleep,
+                  lightColor: AppColors.sleepLight,
+                  isActive: timerState.activityType == ActivityType.sleep,
+                  isPaused: timerState.isPaused,
+                  isEnabled: currentBabyId != null,
+                  isLongPressing: _isLongPressing[ActivityType.sleep] ?? false,
+                  duration: timerState.activityType == ActivityType.sleep
+                      ? timerState.currentDuration
+                      : null,
+                  onPressed: () => _handleTap(ActivityType.sleep),
+                  onLongPress: () => _handleLongPress(ActivityType.sleep),
+                  onLongPressStart: () => _handleLongPressStart(ActivityType.sleep),
+                  onLongPressEnd: () => _handleLongPressEnd(ActivityType.sleep),
+                ),
+              ),
+              SizedBox(
+                width: buttonWidth,
+                child: _ActionButton(
+                  label: '便便',
+                  icon: Icons.water_drop,
+                  color: AppColors.poop,
+                  lightColor: AppColors.poopLight,
+                  isActive: timerState.activityType == ActivityType.poop,
+                  isPaused: timerState.isPaused,
+                  isEnabled: currentBabyId != null,
+                  isLongPressing: _isLongPressing[ActivityType.poop] ?? false,
+                  duration: timerState.activityType == ActivityType.poop
+                      ? timerState.currentDuration
+                      : null,
+                  onPressed: () => _handleTap(ActivityType.poop),
+                  onLongPress: () => _handleLongPress(ActivityType.poop),
+                  onLongPressStart: () => _handleLongPressStart(ActivityType.poop),
+                  onLongPressEnd: () => _handleLongPressEnd(ActivityType.poop),
+                ),
+              ),
+              SizedBox(
+                width: buttonWidth,
+                child: _ActionButton(
+                  label: '成长',
+                  icon: Icons.trending_up,
+                  color: AppColors.primary, // Teal
+                  lightColor: AppColors.primaryLight,
+                  isActive: false, // 成长按钮没有活跃状态
+                  isPaused: false,
+                  isEnabled: currentBabyId != null,
+                  isLongPressing: false,
+                  duration: null,
+                  onPressed: _handleGrowthTap,
+                  onLongPress: null, // 成长按钮不支持长按
+                  onLongPressStart: null,
+                  onLongPressEnd: null,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -351,15 +410,11 @@ class _ActionButton extends StatelessWidget {
         onLongPressStart: (_) => onLongPressStart?.call(),
         onLongPressEnd: (_) => onLongPressEnd?.call(),
         onLongPressCancel: () => onLongPressEnd?.call(),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Transform.scale(
-            scale: scale,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+        child: Transform.scale(
+          scale: scale,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               // 图标容器
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -406,25 +461,26 @@ class _ActionButton extends StatelessWidget {
                 Text(
                   _formatDuration(duration!),
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: effectiveColor,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 )
               else
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: effectiveColor,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
             ],
           ),
         ),
       ),
-    ),
-  );
+    );
 }
 }

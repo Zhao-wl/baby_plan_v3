@@ -1,9 +1,14 @@
-# timer-ui Specification
+# timer-ui Delta Specification
 
-## Purpose
-计时器 UI 组件，显示实时计时状态，提供控制操作按钮。
+## REMOVED Requirements
 
-## Requirements
+### Requirement: 呼吸动画效果
+
+**Reason**: 视觉风格回归朴素，取消动态动画效果。
+
+**Migration**: 移除 `_breathController`、`_breathAnimation` 及 `_buildBreathingRipples` 方法。计时状态通过颜色标签和文字表达。
+
+## MODIFIED Requirements
 
 ### Requirement: 显示计时状态
 
@@ -30,35 +35,6 @@
 - **AND** 时长显示"00:00:00"
 - **AND** 卡片高度为紧凑模式
 
-#### Scenario: 从数据库恢复进行中活动状态
-- **WHEN** 应用启动、刷新或从后台恢复
-- **AND** 数据库中存在进行中的活动记录（status=0）
-- **THEN** 系统 SHALL 自动从数据库恢复计时状态
-- **AND** 显示该活动的类型、已持续时间
-- **AND** 如果之前处于暂停状态，恢复暂停状态
-
-#### Scenario: 数据库中无进行中活动
-- **WHEN** 应用启动、刷新或从后台恢复
-- **AND** 数据库中无进行中的活动记录
-- **THEN** 系统 SHALL 显示空闲状态
-- **AND** 不显示任何计时信息
-
-### Requirement: 时间格式化显示
-
-系统 SHALL 以 HH:MM:SS 格式显示计时时长。
-
-#### Scenario: 小于一小时显示
-- **WHEN** 计时时长小于1小时
-- **THEN** 显示格式为 "MM:SS" 或 "00:MM:SS"
-
-#### Scenario: 超过一小时显示
-- **WHEN** 计时时长超过1小时
-- **THEN** 显示格式为 "HH:MM:SS"
-
-#### Scenario: 超过24小时显示
-- **WHEN** 计时时长超过24小时
-- **THEN** 显示格式为 "HH:MM:SS"（小时数继续累加）
-
 ### Requirement: 控制按钮
 
 系统 SHALL 提供计时控制按钮，按钮布局自适应。
@@ -70,18 +46,6 @@
   - 结束按钮
   - 取消按钮
 - **AND** 按钮水平排列，自动换行
-
-#### Scenario: 暂停时显示的按钮
-- **WHEN** 计时暂停
-- **THEN** 系统显示：
-  - 继续按钮
-  - 结束按钮
-  - 取消按钮
-
-#### Scenario: 空闲时无按钮
-- **WHEN** 无计时
-- **THEN** 系统不显示控制按钮
-- **AND** 显示引导提示
 
 #### Scenario: 按钮不溢出
 - **WHEN** 计时器在任意屏幕尺寸下显示
@@ -117,6 +81,8 @@
 - **THEN** 卡片背景使用白色
 - **AND** 边框使用浅灰色 (slate-200)
 
+## ADDED Requirements
+
 ### Requirement: 内容自适应高度
 
 系统 SHALL 让计时器卡片高度根据内容自适应。
@@ -135,12 +101,3 @@
 - **WHEN** 屏幕宽度不足以水平排列三个按钮
 - **THEN** 按钮使用更紧凑的间距
 - **AND** 保持在一行内显示
-
-### Requirement: 今日累计显示
-
-系统 SHALL 显示今日该类型活动的累计时长。
-
-#### Scenario: 显示今日累计
-- **WHEN** 正在计时某类型活动
-- **THEN** 显示"今日累计: X 小时 Y 分钟"
-- **AND** 累计时长包含当前正在计时的活动
